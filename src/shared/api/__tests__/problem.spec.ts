@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError, mapProblemDetails } from '../problem'
+import { ApiError, mapProblemDetails, normalizeFieldKey } from '../problem'
+
+describe('normalizeFieldKey', () => {
+  it('maps Lines[2].UnitPrice and lines[2].unitPrice to the same key', () => {
+    expect(normalizeFieldKey('Lines[2].UnitPrice')).toBe('lines[2].unitPrice')
+    expect(normalizeFieldKey('lines[2].unitPrice')).toBe('lines[2].unitPrice')
+    expect(normalizeFieldKey('Lines[2].UnitPrice')).toBe(
+      normalizeFieldKey('lines[2].unitPrice'),
+    )
+  })
+})
 
 describe('mapProblemDetails', () => {
   it('maps mixed-case field keys to known form fields', () => {

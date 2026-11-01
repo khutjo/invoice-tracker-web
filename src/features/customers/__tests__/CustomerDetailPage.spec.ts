@@ -4,6 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { customersApi, type CustomerDetails } from '../api'
+import { invoicesApi } from 'src/features/invoices/api'
 import CustomerDetailPage from '../pages/CustomerDetailPage.vue'
 
 const activeCustomer: CustomerDetails = {
@@ -97,9 +98,15 @@ describe('CustomerDetailPage', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.restoreAllMocks()
+    vi.spyOn(invoicesApi, 'searchInvoices').mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 10,
+      totalCount: 0,
+    })
   })
 
-  it('hides Edit and Archive buttons when the customer is archived', async () => {
+  it('hides Edit, Archive, and New invoice buttons when the customer is archived', async () => {
     vi.spyOn(customersApi, 'getCustomer').mockResolvedValueOnce({
       ...activeCustomer,
       isArchived: true,
@@ -111,6 +118,9 @@ describe('CustomerDetailPage', () => {
     expect(wrapper.find('[data-testid="customer-archived-pill"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="customer-edit-btn"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="customer-archive-btn"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="customer-new-invoice-btn"]').exists()).toBe(
+      false,
+    )
   })
 
   it('calls archiveCustomer only after confirming in the archive dialog', async () => {

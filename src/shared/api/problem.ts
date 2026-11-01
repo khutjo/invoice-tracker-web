@@ -35,10 +35,11 @@ export class ApiError extends Error {
 
 /**
  * Normalizes a single segment (e.g. "PostalCode" -> "postalCode")
- * or a dotted path ("Address.PostalCode" -> "address.postalCode").
+ * or a dotted/indexed path ("Lines[2].UnitPrice" -> "lines[2].unitPrice").
  */
 export function normalizeFieldKey(rawKey: string): string {
-  return rawKey
+  const cleaned = rawKey.startsWith('$.') ? rawKey.slice(2) : rawKey
+  return cleaned
     .split('.')
     .map((segment) => {
       if (!segment) return segment

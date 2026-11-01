@@ -68,14 +68,26 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'invoices',
         name: 'invoices',
-        component: () => import('src/features/dashboard/pages/DashboardPage.vue'),
+        component: () => import('src/features/invoices/pages/InvoicesPage.vue'),
         meta: { title: 'Invoices', requiresAuth: true },
       },
       {
         path: 'invoices/new',
         name: 'invoice-new',
-        component: () => import('src/features/dashboard/pages/DashboardPage.vue'),
+        component: () => import('src/features/invoices/pages/InvoiceEditorPage.vue'),
         meta: { title: 'New Invoice', requiresAuth: true },
+      },
+      {
+        path: 'invoices/:invoiceId',
+        name: 'invoice-detail',
+        component: () => import('src/features/invoices/pages/InvoiceDetailPage.vue'),
+        meta: { title: 'Invoice', requiresAuth: true },
+      },
+      {
+        path: 'invoices/:invoiceId/edit',
+        name: 'invoice-edit',
+        component: () => import('src/features/invoices/pages/InvoiceEditorPage.vue'),
+        meta: { title: 'Edit Invoice', requiresAuth: true },
       },
       {
         path: 'customers',
