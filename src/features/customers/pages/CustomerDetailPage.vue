@@ -144,6 +144,97 @@
         </dl>
       </section>
 
+      <!-- Customer Invoices Section -->
+      <section
+        class="attio-card customer-invoices-panel"
+        aria-label="Customer invoices"
+        data-testid="customer-invoices-section"
+      >
+        <div class="customer-invoices-panel__header">
+          <div class="customer-invoices-panel__title-group">
+            <h2 class="text-heading-md">Invoices</h2>
+            <router-link
+              :to="`/invoices?customerId=${encodeURIComponent(customer.customerId)}`"
+              class="customer-invoices-panel__view-all"
+              data-testid="customer-view-all-invoices-link"
+            >
+              View all
+            </router-link>
+          </div>
+
+          <q-btn
+            v-if="!customer.isArchived"
+            color="primary"
+            dense
+            icon="add"
+            label="New invoice"
+            :to="`/invoices/new?customerId=${encodeURIComponent(customer.customerId)}`"
+            data-testid="customer-new-invoice-btn"
+          />
+        </div>
+
+        <div
+          v-if="loadingInvoices"
+          class="customer-invoices-panel__empty"
+          data-testid="customer-invoices-loading"
+        >
+          <q-skeleton type="text" width="100%" />
+          <q-skeleton type="text" width="85%" />
+        </div>
+
+        <div
+          v-else-if="customerInvoices.length === 0"
+          class="customer-invoices-panel__empty"
+          data-testid="customer-invoices-empty"
+        >
+          <span class="text-muted">No invoices for this customer yet.</span>
+        </div>
+
+        <div v-else class="table-scroll">
+          <table class="attio-table customer-invoices-table">
+            <thead>
+              <tr>
+                <th class="text-left">Number</th>
+                <th class="text-left">Issued</th>
+                <th class="text-left">Due</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">Balance</th>
+                <th class="text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="inv in customerInvoices"
+                :key="inv.invoiceId"
+                data-testid="customer-invoice-row"
+                @click="
+                  router.push(`/invoices/${encodeURIComponent(inv.invoiceId)}`)
+                "
+              >
+                <td class="tabular-nums">
+                  <span :class="{ 'text-muted': !inv.invoiceNumber }">
+                    {{ inv.invoiceNumber ?? 'Draft' }}
+                  </span>
+                </td>
+                <td class="tabular-nums text-muted">
+                  {{ formatInvoiceDate(inv.issueDate) }}
+                </td>
+                <td class="tabular-nums text-muted">
+                  {{ formatInvoiceDate(inv.dueDate) }}
+                </td>
+                <td class="text-money">{{ formatZar(inv.total) }}</td>
+                <td class="text-money">{{ formatZar(inv.balance) }}</td>
+                <td class="text-right">
+                  <span :class="invoiceStatusClass(inv.status)">
+                    {{ inv.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- Edit Customer Form Drawer -->
       <CustomerForm
         v-model="editDrawerOpen"
@@ -194,7 +285,13 @@ import { useQuasar } from 'quasar'
 import { customersApi, type CustomerDetails } from 'src/features/customers/api'
 import CustomerForm from 'src/features/customers/components/CustomerForm.vue'
 import { useCustomersStore } from 'src/features/customers/store'
+import {
+  invoicesApi,
+  type InvoiceStatus,
+  type InvoiceSummary,
+} from 'src/features/invoices/api'
 import { ApiError } from 'src/shared/api/problem'
+import { formatInvoiceDate, formatZar } from 'src/shared/money'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -207,11 +304,29 @@ const notFound = ref(false)
 const editDrawerOpen = ref(false)
 const archiveDialogOpen = ref(false)
 const archiving = ref(false)
+const customerInvoices = ref<InvoiceSummary[]>([])
+const loadingInvoices = ref(false)
 
 const backToListLocation = computed(() => ({
   path: '/customers',
   query: customersStore.lastListRouteQuery,
 }))
+
+async function loadCustomerInvoices(customerId: string) {
+  loadingInvoices.value = true
+  try {
+    const page = await invoicesApi.searchInvoices({
+      customerId,
+      page: 1,
+      pageSize: 10,
+    })
+    customerInvoices.value = page?.items ?? []
+  } catch {
+    customerInvoices.value = []
+  } finally {
+    loadingInvoices.value = false
+  }
+}
 
 async function loadCustomerDetail() {
   const customerId =
@@ -226,6 +341,7 @@ async function loadCustomerDetail() {
   notFound.value = false
   try {
     customer.value = await customersApi.getCustomer(customerId)
+    void loadCustomerInvoices(customerId)
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       notFound.value = true
@@ -268,6 +384,21 @@ async function confirmArchiveCustomer() {
     void customersStore.fetchCustomersPage()
   } finally {
     archiving.value = false
+  }
+}
+
+function invoiceStatusClass(status: InvoiceStatus): string {
+  switch (status) {
+    case 'Draft':
+      return 'status-pill status-pill--draft'
+    case 'Sent':
+      return 'status-pill status-pill--sent'
+    case 'Overdue':
+      return 'status-pill status-pill--overdue'
+    case 'Paid':
+      return 'status-pill status-pill--paid'
+    case 'Cancelled':
+      return 'status-pill status-pill--cancelled'
   }
 }
 </script>
@@ -465,5 +596,46 @@ async function confirmArchiveCustomer() {
 
 .text-muted {
   color: var(--text-muted);
+}
+
+.customer-invoices-panel {
+  overflow: hidden;
+
+  &__header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border-hairline);
+    background: var(--bg-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__view-all {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--accent-primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__empty {
+    padding: 20px 18px;
+    font-size: 13px;
+  }
+}
+
+.customer-invoices-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 </style>
