@@ -1,0 +1,25 @@
+// Quasar SCSS (& Sass) Variables
+// Inspired by Attio's calm, high-density, hairline-border design language
+
+$primary   : #2F6FEB;
+$secondary : #6B6F76;
+$accent    : #2F6FEB;
+
+$dark      : #16181B;
+$dark-page : #111214;
+
+$positive  : #166534;
+$negative  : #B42318;
+$info      : #1D52B8;
+$warning   : #9A5B13;
+
+$typography-font-family : 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+$generic-border-radius  : 6px;
+$button-border-radius   : 6px;
+$button-font-weight     : 500;
+
+$shadow-color           : rgba(15, 17, 20, 0.08);
+$elevation-umbra        : rgba(15, 17, 20, 0.05);
+$elevation-penumbra     : rgba(15, 17, 20, 0.04);
+$elevation-ambient      : rgba(15, 17, 20, 0.03);

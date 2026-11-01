@@ -147,3 +147,15 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Quasar & IDE
+.quasar/
+dist/
+quasar.config.*.temporary.compiled.*
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local AI prompt specs
+gemini-*.md

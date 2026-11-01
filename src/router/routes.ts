@@ -80,8 +80,14 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'customers',
         name: 'customers',
-        component: () => import('src/features/dashboard/pages/DashboardPage.vue'),
+        component: () => import('src/features/customers/pages/CustomersPage.vue'),
         meta: { title: 'Customers', requiresAuth: true },
+      },
+      {
+        path: 'customers/:customerId',
+        name: 'customer-detail',
+        component: () => import('src/features/customers/pages/CustomerDetailPage.vue'),
+        meta: { title: 'Customer', requiresAuth: true },
       },
       {
         path: 'notifications',
