@@ -1,0 +1,324 @@
+// Global Attio-inspired design tokens & overrides
+
+:root {
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: #f6f7f9;
+  --bg-surface-hover: #f3f4f6;
+  --bg-canvas: #fafafa;
+  --border-hairline: #e6e6e9;
+  --border-strong: #d1d3d8;
+
+  --text-primary: #1c1d1f;
+  --text-secondary: #6b6f76;
+  --text-muted: #9a9da3;
+
+  --accent-primary: #2f6feb;
+  --accent-primary-hover: #255bc7;
+  --accent-subtle: #ebf1fd;
+  --focus-ring: rgba(47, 111, 235, 0.24);
+
+  // Soft tinted status pills (pale background + high-contrast text, WCAG AA)
+  --pill-draft-bg: #f1f2f4;
+  --pill-draft-text: #4b4e54;
+  --pill-draft-border: #e1e3e8;
+
+  --pill-sent-bg: #ebf1fd;
+  --pill-sent-text: #1d52b8;
+  --pill-sent-border: #cfe0fb;
+
+  --pill-overdue-bg: #fdecec;
+  --pill-overdue-text: #b42318;
+  --pill-overdue-border: #f9cecc;
+  --row-overdue-bg: #fffafa;
+
+  --pill-paid-bg: #eaf6ed;
+  --pill-paid-text: #166534;
+  --pill-paid-border: #c5e7ce;
+
+  --pill-partial-bg: #fef4e6;
+  --pill-partial-text: #9a5b13;
+  --pill-partial-border: #f9dfb8;
+
+  --pill-cancelled-bg: #f3f4f6;
+  --pill-cancelled-text: #6b6f76;
+  --pill-cancelled-border: #e5e7eb;
+
+  --popover-shadow: 0 4px 16px rgba(15, 17, 20, 0.08), 0 1px 2px rgba(15, 17, 20, 0.04);
+}
+
+body.body--dark {
+  --bg-surface: #16181b;
+  --bg-surface-subtle: #1c1f24;
+  --bg-surface-hover: #202329;
+  --bg-canvas: #111214;
+  --border-hairline: #26282d;
+  --border-strong: #343840;
+
+  --text-primary: #f3f4f6;
+  --text-secondary: #9a9da3;
+  --text-muted: #6b6f76;
+
+  --accent-primary: #4785ff;
+  --accent-primary-hover: #5c94ff;
+  --accent-subtle: rgba(71, 133, 255, 0.14);
+  --focus-ring: rgba(71, 133, 255, 0.35);
+
+  --pill-draft-bg: #22252b;
+  --pill-draft-text: #c8cbd2;
+  --pill-draft-border: #31353e;
+
+  --pill-sent-bg: rgba(47, 111, 235, 0.16);
+  --pill-sent-text: #84b1ff;
+  --pill-sent-border: rgba(71, 133, 255, 0.3);
+
+  --pill-overdue-bg: rgba(217, 45, 32, 0.16);
+  --pill-overdue-text: #fca5a5;
+  --pill-overdue-border: rgba(217, 45, 32, 0.32);
+  --row-overdue-bg: rgba(217, 45, 32, 0.06);
+
+  --pill-paid-bg: rgba(22, 101, 52, 0.22);
+  --pill-paid-text: #86efac;
+  --pill-paid-border: rgba(34, 197, 94, 0.3);
+
+  --pill-partial-bg: rgba(180, 83, 9, 0.2);
+  --pill-partial-text: #fcd34d;
+  --pill-partial-border: rgba(245, 158, 11, 0.3);
+
+  --pill-cancelled-bg: #1e2025;
+  --pill-cancelled-text: #8b9098;
+  --pill-cancelled-border: #2c2f36;
+
+  --popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.42), 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+
+html,
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+// Typography hierarchy: weight rather than oversized text
+h1,
+.text-heading-lg {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h2,
+.text-heading-md {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h3,
+.text-heading-sm {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+// Tabular numeric alignment for ZAR amounts and ISO dates
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.text-money {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+// Hairline cards & surfaces
+.attio-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+// Status pills (4px radius, soft tinted background)
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+
+  &--draft {
+    background-color: var(--pill-draft-bg);
+    color: var(--pill-draft-text);
+    border-color: var(--pill-draft-border);
+  }
+
+  &--sent {
+    background-color: var(--pill-sent-bg);
+    color: var(--pill-sent-text);
+    border-color: var(--pill-sent-border);
+  }
+
+  &--overdue {
+    background-color: var(--pill-overdue-bg);
+    color: var(--pill-overdue-text);
+    border-color: var(--pill-overdue-border);
+  }
+
+  &--paid {
+    background-color: var(--pill-paid-bg);
+    color: var(--pill-paid-text);
+    border-color: var(--pill-paid-border);
+  }
+
+  &--partially-paid {
+    background-color: var(--pill-partial-bg);
+    color: var(--pill-partial-text);
+    border-color: var(--pill-partial-border);
+  }
+
+  &--cancelled {
+    background-color: var(--pill-cancelled-bg);
+    color: var(--pill-cancelled-text);
+    border-color: var(--pill-cancelled-border);
+    text-decoration: line-through;
+  }
+}
+
+// Form field label above input
+.auth-field {
+  min-width: 0;
+  width: 100%;
+  max-width: 480px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.field-helper {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+// Quasar overrides to remove Material shadows and enforce hairline borders
+.q-card--bordered,
+.q-table--bordered {
+  border: 1px solid var(--border-hairline) !important;
+  box-shadow: none !important;
+  border-radius: 8px;
+}
+
+.q-menu,
+.q-dialog__inner > .q-card {
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--popover-shadow) !important;
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.q-field {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.q-field__native {
+  min-width: 0;
+}
+
+.q-select .q-field__native > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.q-field--outlined .q-field__control {
+  border-radius: 6px;
+  background: var(--bg-surface);
+}
+
+.q-field--outlined .q-field__control:before {
+  border-color: var(--border-hairline);
+}
+
+.q-field--outlined.q-field--focused .q-field__control:after {
+  border-width: 1px;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+// Visible keyboard focus states (WCAG AA)
+.q-btn:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+// Dense Attio data tables (36-40px rows, hairline dividers, sticky header)
+.attio-table {
+  background: var(--bg-surface);
+
+  thead tr {
+    height: 36px;
+    background: var(--bg-surface-subtle);
+  }
+
+  thead th {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-hairline);
+    padding: 0 12px;
+  }
+
+  tbody tr {
+    height: 38px;
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background-color: var(--bg-surface-hover);
+    }
+  }
+
+  tbody td {
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-hairline);
+    padding: 0 12px;
+  }
+}
+
+// Touch device tap targets >= 44px
+@media (pointer: coarse) {
+  .touch-target,
+  .q-btn:not(.q-btn--dense),
+  .mobile-tab-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

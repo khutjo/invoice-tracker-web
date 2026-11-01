@@ -1,0 +1,51 @@
+{
+  "name": "invoice-tracker-web",
+  "version": "0.1.0",
+  "description": "Business Invoice Tracker web application",
+  "productName": "Invoice Tracker",
+  "author": "Khutjo",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,vue,scss}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "vue-tsc --noEmit",
+    "postinstall": "quasar prepare"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.12",
+    "pinia": "^3.0.1",
+    "quasar": "^2.17.7",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@quasar/app-vite": "^2.0.8",
+    "@types/node": "^22.13.1",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/eslint-config-prettier": "^10.1.0",
+    "@vue/eslint-config-typescript": "^14.3.0",
+    "@vue/test-utils": "^2.4.6",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.19.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^15.14.0",
+    "happy-dom": "^16.8.1",
+    "openapi-typescript": "^7.6.1",
+    "prettier": "^3.4.2",
+    "sass-embedded": "^1.83.4",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.22.0",
+    "vitest": "^3.0.4",
+    "vue-tsc": "^2.2.0"
+  },
+  "engines": {
+    "node": "^28 || ^26 || ^24 || ^22 || ^20",
+    "npm": ">= 6.13.4"
+  }
+}
