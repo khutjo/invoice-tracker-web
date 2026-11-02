@@ -281,6 +281,8 @@ button:focus-visible {
 
 // Dense Attio data tables (36-40px rows, hairline dividers, sticky header)
 .attio-table {
+  width: 100%;
+  border-collapse: collapse;
   background: var(--bg-surface);
 
   thead tr {
@@ -293,7 +295,7 @@ button:focus-visible {
     font-weight: 500;
     color: var(--text-secondary);
     border-bottom: 1px solid var(--border-hairline);
-    padding: 0 12px;
+    padding: 0 16px;
   }
 
   tbody tr {
@@ -309,7 +311,7 @@ button:focus-visible {
   tbody td {
     font-size: 13px;
     border-bottom: 1px solid var(--border-hairline);
-    padding: 0 12px;
+    padding: 0 16px;
   }
 }
 

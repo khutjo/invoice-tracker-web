@@ -146,5 +146,5 @@ export function formatInvoiceDate(isoDate: string | null | undefined): string {
   if (Number.isNaN(date.getTime())) {
     return '—'
   }
-  return invoiceDateFormatter.format(date)
+  return invoiceDateFormatter.format(date).replace(/^0(\d\s)/, '$1')
 }

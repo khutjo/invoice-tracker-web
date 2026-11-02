@@ -260,8 +260,9 @@
         </div>
 
         <div class="invoice-mobile-card__customer">
+          <span v-if="inv.customerName">{{ inv.customerName }}</span>
           <q-skeleton
-            v-if="isCustomerLoading(inv.customerId)"
+            v-else-if="isCustomerLoading(inv.customerId)"
             type="text"
             width="130px"
           />
@@ -335,8 +336,9 @@
                 </span>
               </td>
               <td>
+                <span v-if="inv.customerName">{{ inv.customerName }}</span>
                 <q-skeleton
-                  v-if="isCustomerLoading(inv.customerId)"
+                  v-else-if="isCustomerLoading(inv.customerId)"
                   type="text"
                   width="140px"
                   data-testid="customer-name-skeleton"
@@ -435,8 +437,9 @@ import {
   searchCustomers,
   type CustomerSummary,
 } from 'src/features/customers/api'
-import type { InvoiceStatus, InvoiceSummary } from '../api'
+import type { InvoiceStatus } from '../api'
 import { useCustomerNames } from '../composables/useCustomerNames'
+import { isPartiallyPaid, statusPillClass } from '../status'
 import { useInvoicesStore } from '../store'
 import { formatInvoiceDate, formatZar } from 'src/shared/money'
 
@@ -628,7 +631,9 @@ async function syncFromRouteAndFetch() {
     idsToResolve.add(activeCustomerId.value)
   }
   for (const inv of page?.items ?? []) {
-    if (inv.customerId) {
+    if (inv.customerName) {
+      setCustomerName(inv.customerId, inv.customerName)
+    } else if (inv.customerId) {
       idsToResolve.add(inv.customerId)
     }
   }
@@ -796,25 +801,6 @@ function changePageSize(pageSize: number) {
 
 function openInvoiceDetail(invoiceId: string) {
   void router.push(`/invoices/${encodeURIComponent(invoiceId)}`)
-}
-
-function statusPillClass(status: InvoiceStatus): string {
-  switch (status) {
-    case 'Draft':
-      return 'status-pill status-pill--draft'
-    case 'Sent':
-      return 'status-pill status-pill--sent'
-    case 'Overdue':
-      return 'status-pill status-pill--overdue'
-    case 'Paid':
-      return 'status-pill status-pill--paid'
-    case 'Cancelled':
-      return 'status-pill status-pill--cancelled'
-  }
-}
-
-function isPartiallyPaid(inv: InvoiceSummary): boolean {
-  return inv.amountPaid > 0 && inv.amountPaid < inv.total
 }
 </script>
 
