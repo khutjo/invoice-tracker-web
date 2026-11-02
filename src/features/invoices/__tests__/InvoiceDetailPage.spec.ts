@@ -4,6 +4,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import * as customersApiModule from 'src/features/customers/api'
+import { notificationsApi } from 'src/features/notifications/api'
+import { useNotificationFeedStore } from 'src/features/notifications/store'
 import { invoicesApi, type InvoiceDetails } from '../api'
 import { resetCustomerNamesCache } from '../composables/useCustomerNames'
 import InvoiceDetailPage from '../pages/InvoiceDetailPage.vue'
@@ -131,6 +133,12 @@ describe('InvoiceDetailPage', () => {
       isArchived: false,
       version: 'c-v1',
     })
+    vi.spyOn(notificationsApi, 'searchNotifications').mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 50,
+      totalCount: 0,
+    })
   })
 
   it('hides Edit, Send, and Delete buttons on a Sent invoice', async () => {
@@ -193,5 +201,91 @@ describe('InvoiceDetailPage', () => {
         message: 'Sent as INV-2026-0001',
       }),
     )
+  })
+
+  it('hides the Notifications card for drafts, renders notifications oldest-first for non-drafts, and refetches only when lastInvoiceId matches', async () => {
+    // 1. Draft invoice -> Notifications card is hidden
+    const getInvoiceSpy = vi
+      .spyOn(invoicesApi, 'getInvoice')
+      .mockResolvedValueOnce(draftInvoice)
+    const searchNotifSpy = vi.spyOn(notificationsApi, 'searchNotifications')
+
+    const draftWrapper = await mountDetailPage('inv-200')
+    await flushPromises()
+    expect(
+      draftWrapper.find('[data-testid="invoice-notifications-section"]').exists(),
+    ).toBe(false)
+    expect(searchNotifSpy).not.toHaveBeenCalled()
+
+    // 2. Sent invoice -> Notifications card renders rows oldest-first
+    getInvoiceSpy.mockResolvedValue({
+      ...draftInvoice,
+      invoiceNumber: 'INV-2026-0001',
+      status: 'Sent',
+      issueDate: '2026-11-01',
+      dueDate: '2026-11-15',
+    })
+    searchNotifSpy.mockResolvedValue({
+      items: [
+        {
+          notificationId: 'n-newest',
+          invoiceId: 'inv-200',
+          invoiceNumber: 'INV-2026-0001',
+          customerName: 'Highveld Logistics (Pty) Ltd',
+          notificationType: 'OverdueReminder1',
+          channel: 'Sms',
+          recipient: '+27821234567',
+          status: 'Sent',
+          attempts: 1,
+          body: 'Overdue reminder body',
+          createdAt: '2026-11-16T09:00:00Z',
+          sentAt: '2026-11-16T09:00:05Z',
+        },
+        {
+          notificationId: 'n-oldest',
+          invoiceId: 'inv-200',
+          invoiceNumber: 'INV-2026-0001',
+          customerName: 'Highveld Logistics (Pty) Ltd',
+          notificationType: 'InvoiceSent',
+          channel: 'Email',
+          recipient: 'accounts@highveld.co.za',
+          status: 'Sent',
+          attempts: 1,
+          body: 'Initial invoice sent body',
+          createdAt: '2026-11-01T12:00:00Z',
+          sentAt: '2026-11-01T12:00:02Z',
+        },
+      ],
+      page: 1,
+      pageSize: 50,
+      totalCount: 2,
+    })
+
+    const sentWrapper = await mountDetailPage('inv-200')
+    await flushPromises()
+
+    expect(
+      sentWrapper.find('[data-testid="invoice-notifications-section"]').exists(),
+    ).toBe(true)
+    const rows = sentWrapper.findAll('[data-testid="notification-log-row"]')
+    expect(rows).toHaveLength(2)
+    // Oldest ('Invoice sent') is first, newest ('Overdue reminder') is second
+    expect(rows[0]!.text()).toContain('Invoice sent')
+    expect(rows[1]!.text()).toContain('Overdue reminder')
+
+    const callsBeforeBump = searchNotifSpy.mock.calls.length
+    const feedStore = useNotificationFeedStore()
+
+    // Bump changeVersion for a DIFFERENT invoice -> no refetch
+    feedStore.lastInvoiceId = 'inv-other'
+    feedStore.changeVersion += 1
+    await flushPromises()
+    expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump)
+
+    // Bump changeVersion for THIS invoice ('inv-200') -> quiet refetch
+    feedStore.lastInvoiceId = 'inv-200'
+    feedStore.changeVersion += 1
+    await flushPromises()
+    expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump + 1)
   })
 })

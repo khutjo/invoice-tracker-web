@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useNotificationFeedStore } from 'src/features/notifications/store'
 
 export interface CommandItem {
   id: string
@@ -77,67 +78,74 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const notificationFeedStore = useNotificationFeedStore()
 const query = ref('')
 const selectedIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 
-const defaultItems: CommandItem[] = [
-  {
-    id: 'action-new-invoice',
-    label: 'New invoice',
-    subtitle: 'Create a new draft tax invoice',
-    group: 'Actions',
-    icon: 'add_circle_outline',
-    to: '/invoices/new',
-  },
-  {
-    id: 'nav-dashboard',
-    label: 'Go to Dashboard',
-    subtitle: 'KPIs, overdue summary & recent notifications',
-    group: 'Navigation',
-    icon: 'space_dashboard',
-    to: '/dashboard',
-  },
-  {
-    id: 'nav-invoices',
-    label: 'Go to Invoices',
-    subtitle: 'View and filter all invoices',
-    group: 'Navigation',
-    icon: 'receipt_long',
-    to: '/invoices',
-  },
-  {
-    id: 'nav-customers',
-    label: 'Go to Customers',
-    subtitle: 'Manage customer directory and billing addresses',
-    group: 'Navigation',
-    icon: 'people_outline',
-    to: '/customers',
-  },
-  {
-    id: 'nav-notifications',
-    label: 'Go to Notifications',
-    subtitle: 'Simulated email and SMS log',
-    group: 'Navigation',
-    icon: 'notifications_none',
-    to: '/notifications',
-  },
-  {
-    id: 'nav-settings',
-    label: 'Go to Settings',
-    subtitle: 'Business profile, banking details & payment terms',
-    group: 'Navigation',
-    icon: 'settings',
-    to: '/settings',
-  },
-]
+const defaultItems = computed<CommandItem[]>(() => {
+  const unread = notificationFeedStore.unreadCount
+  const unreadSuffix =
+    unread > 0 ? ` (${unread > 9 ? '9+' : unread} unread)` : ''
+
+  return [
+    {
+      id: 'action-new-invoice',
+      label: 'New invoice',
+      subtitle: 'Create a new draft tax invoice',
+      group: 'Actions',
+      icon: 'add_circle_outline',
+      to: '/invoices/new',
+    },
+    {
+      id: 'nav-dashboard',
+      label: 'Go to Dashboard',
+      subtitle: 'KPIs, overdue summary & recent notifications',
+      group: 'Navigation',
+      icon: 'space_dashboard',
+      to: '/dashboard',
+    },
+    {
+      id: 'nav-invoices',
+      label: 'Go to Invoices',
+      subtitle: 'View and filter all invoices',
+      group: 'Navigation',
+      icon: 'receipt_long',
+      to: '/invoices',
+    },
+    {
+      id: 'nav-customers',
+      label: 'Go to Customers',
+      subtitle: 'Manage customer directory and billing addresses',
+      group: 'Navigation',
+      icon: 'people_outline',
+      to: '/customers',
+    },
+    {
+      id: 'nav-notifications',
+      label: `Go to Notifications${unreadSuffix}`,
+      subtitle: 'Simulated email and SMS log',
+      group: 'Navigation',
+      icon: 'notifications_none',
+      to: '/notifications',
+    },
+    {
+      id: 'nav-settings',
+      label: 'Go to Settings',
+      subtitle: 'Business profile, banking details & payment terms',
+      group: 'Navigation',
+      icon: 'settings',
+      to: '/settings',
+    },
+  ]
+})
 
 const filteredItems = computed(() => {
   const term = query.value.trim().toLowerCase()
   if (!term) {
-    return defaultItems
+    return defaultItems.value
   }
-  return defaultItems.filter(
+  return defaultItems.value.filter(
     (item) =>
       item.label.toLowerCase().includes(term) ||
       (item.subtitle && item.subtitle.toLowerCase().includes(term)) ||

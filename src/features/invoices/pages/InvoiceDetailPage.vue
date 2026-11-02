@@ -259,6 +259,48 @@
             </ol>
             <p v-else class="text-secondary">No activity recorded yet.</p>
           </section>
+
+          <!-- Notifications Card (hidden for Draft invoices) -->
+          <section
+            v-if="invoice.status !== 'Draft'"
+            class="attio-card detail-card"
+            aria-label="Invoice notifications"
+            data-testid="invoice-notifications-section"
+          >
+            <h2 class="text-heading-md detail-card__title">Notifications</h2>
+
+            <div
+              v-if="notificationsLoading && invoiceNotifications.length === 0"
+              class="notifications-card-skeleton"
+              data-testid="invoice-notifications-skeleton"
+            >
+              <q-skeleton type="text" width="60%" />
+              <q-skeleton type="text" width="45%" />
+            </div>
+
+            <div
+              v-else-if="invoiceNotifications.length > 0"
+              class="invoice-notifications-list"
+              data-testid="invoice-notifications-list"
+            >
+              <NotificationLogRow
+                v-for="item in invoiceNotifications"
+                :key="item.notificationId"
+                :item="item"
+                mode="compact"
+                :expanded="expandedNotificationId === item.notificationId"
+                @toggle="toggleNotificationExpand(item.notificationId)"
+              />
+            </div>
+
+            <p
+              v-else
+              class="text-secondary"
+              data-testid="invoice-notifications-empty"
+            >
+              No messages sent for this invoice yet.
+            </p>
+          </section>
         </div>
 
         <!-- Totals Summary Card -->
@@ -390,6 +432,10 @@ import {
   getRelativeDueBadge,
   getSendDisabledReason,
 } from '../validation'
+import { notificationsApi } from 'src/features/notifications/api'
+import NotificationLogRow from 'src/features/notifications/components/NotificationLogRow.vue'
+import { useNotificationFeedStore } from 'src/features/notifications/store'
+import type { NotificationLogItem } from 'src/features/notifications/types'
 import { ApiError, mapProblemDetails } from 'src/shared/api/problem'
 import { formatInvoiceDate, formatZar } from 'src/shared/money'
 
@@ -397,6 +443,7 @@ const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const invoicesStore = useInvoicesStore()
+const notificationFeedStore = useNotificationFeedStore()
 const { resolveCustomerIds, isCustomerLoading, getCustomerName } = useCustomerNames()
 
 const invoice = ref<InvoiceDetails | null>(null)
@@ -406,6 +453,9 @@ const sendDialogOpen = ref(false)
 const deleteDialogOpen = ref(false)
 const sending = ref(false)
 const deleting = ref(false)
+const invoiceNotifications = ref<NotificationLogItem[]>([])
+const notificationsLoading = ref(false)
+const expandedNotificationId = ref<string | null>(null)
 
 const backToListLocation = computed(() => ({
   path: '/invoices',
@@ -437,7 +487,37 @@ const projectedDueDateLabel = computed(() => {
   return formatInvoiceDate(dueIso)
 })
 
-async function loadInvoiceDetail() {
+function toggleNotificationExpand(notificationId: string) {
+  expandedNotificationId.value =
+    expandedNotificationId.value === notificationId ? null : notificationId
+}
+
+async function loadInvoiceNotifications(
+  invoiceId: string,
+  options?: { silent?: boolean },
+) {
+  const isSilent = Boolean(options?.silent)
+  if (!isSilent) {
+    notificationsLoading.value = true
+  }
+  try {
+    const res = await notificationsApi.searchNotifications({
+      invoiceId,
+      pageSize: 50,
+    })
+    invoiceNotifications.value = [...res.items].reverse()
+  } catch {
+    if (!isSilent) {
+      invoiceNotifications.value = []
+    }
+  } finally {
+    if (!isSilent) {
+      notificationsLoading.value = false
+    }
+  }
+}
+
+async function loadInvoiceDetail(options?: { silent?: boolean }) {
   const invoiceId =
     typeof route.params.invoiceId === 'string' ? route.params.invoiceId.trim() : ''
   if (!invoiceId) {
@@ -446,22 +526,35 @@ async function loadInvoiceDetail() {
     return
   }
 
-  loading.value = true
-  notFound.value = false
+  const isSilent = Boolean(options?.silent && invoice.value !== null)
+  if (!isSilent) {
+    loading.value = true
+    notFound.value = false
+    invoiceNotifications.value = []
+    expandedNotificationId.value = null
+  }
+
   try {
     const details = await invoicesApi.getInvoice(invoiceId)
     invoice.value = details
     if (details.customerId) {
       await resolveCustomerIds([details.customerId])
     }
+    if (details.status !== 'Draft') {
+      await loadInvoiceNotifications(details.invoiceId, { silent: isSilent })
+    }
   } catch (err) {
-    if (err instanceof ApiError && err.status === 404) {
-      notFound.value = true
-    } else {
-      notFound.value = true
+    if (!isSilent) {
+      if (err instanceof ApiError && err.status === 404) {
+        notFound.value = true
+      } else {
+        notFound.value = true
+      }
     }
   } finally {
-    loading.value = false
+    if (!isSilent) {
+      loading.value = false
+    }
   }
 }
 
@@ -471,6 +564,23 @@ watch(
     void loadInvoiceDetail()
   },
   { immediate: true },
+)
+
+watch(
+  () => notificationFeedStore.changeVersion,
+  () => {
+    const currentId =
+      invoice.value?.invoiceId ??
+      (typeof route.params.invoiceId === 'string'
+        ? route.params.invoiceId.trim()
+        : '')
+    if (
+      currentId &&
+      notificationFeedStore.lastInvoiceId === currentId
+    ) {
+      void loadInvoiceDetail({ silent: true })
+    }
+  },
 )
 
 async function confirmSendInvoice() {
@@ -484,6 +594,9 @@ async function confirmSendInvoice() {
       type: 'positive',
       message: `Sent as ${updated.invoiceNumber ?? ''}`.trim(),
     })
+    if (updated.status !== 'Draft') {
+      await loadInvoiceNotifications(updated.invoiceId)
+    }
   } catch (err) {
     sendDialogOpen.value = false
     const mapped = mapProblemDetails(err)

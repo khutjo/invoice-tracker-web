@@ -104,7 +104,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'notifications',
         name: 'notifications',
-        component: () => import('src/features/dashboard/pages/DashboardPage.vue'),
+        component: () => import('src/features/notifications/pages/NotificationsPage.vue'),
         meta: { title: 'Notifications', requiresAuth: true },
       },
       {
