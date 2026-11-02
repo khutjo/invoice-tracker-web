@@ -19,6 +19,7 @@ export interface InvoiceSummary {
   invoiceId: string
   invoiceNumber: string | null
   customerId: string
+  customerName?: string | null
   status: InvoiceStatus
   issueDate: string | null
   dueDate: string | null

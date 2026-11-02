@@ -25,48 +25,201 @@
       />
     </div>
 
+    <!-- Figures as-of caption -->
+    <div
+      v-if="summary && !loadingSummary && !summaryError"
+      class="dashboard-page__as-of"
+      data-testid="dashboard-as-of"
+    >
+      Figures as of {{ formatInvoiceDate(summary.asOf) }}
+    </div>
+
+    <!-- KPI Summary Error Card -->
+    <div
+      v-if="summaryError && !loadingSummary"
+      class="attio-card dashboard-state-card"
+      data-testid="dashboard-summary-error"
+    >
+      <q-icon name="error_outline" size="22px" class="dashboard-state-card__icon" />
+      <p class="dashboard-state-card__title">Couldn't load the summary.</p>
+      <q-btn
+        outline
+        dense
+        color="primary"
+        label="Try again"
+        data-testid="dashboard-summary-retry-btn"
+        @click="reload()"
+      />
+    </div>
+
     <!-- KPI Tiles Row -->
-    <section class="dashboard-page__kpis" aria-label="Financial summary">
-      <div class="attio-card kpi-tile">
+    <section
+      v-else
+      class="dashboard-page__kpis"
+      aria-label="Financial summary"
+      data-testid="dashboard-kpis"
+    >
+      <!-- Tile 1: Total Outstanding -->
+      <router-link
+        to="/invoices?status=Sent"
+        class="attio-card kpi-tile"
+        :aria-label="totalOutstandingAriaLabel"
+        data-testid="kpi-tile-outstanding"
+      >
         <div class="kpi-tile__header">
           <span class="kpi-tile__label">Total Outstanding</span>
           <span class="status-pill status-pill--sent">Sent &amp; Overdue</span>
         </div>
-        <div class="kpi-tile__value tabular-nums">{{ formatZar(148250.0) }}</div>
-        <div class="kpi-tile__meta">Across 6 open invoices</div>
-      </div>
+        <div class="kpi-tile__value tabular-nums">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="120px"
+            data-testid="kpi-skeleton-value"
+          />
+          <template v-else>
+            {{ formatZar(summary.totalOutstanding.balance) }}
+          </template>
+        </div>
+        <div class="kpi-tile__meta">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="140px"
+            data-testid="kpi-skeleton-meta"
+          />
+          <template v-else>
+            Across
+            {{ pluralize(summary.totalOutstanding.openInvoiceCount, 'open invoice') }}
+          </template>
+        </div>
+      </router-link>
 
-      <div class="attio-card kpi-tile">
+      <!-- Tile 2: Overdue Balance -->
+      <router-link
+        to="/invoices?overdue=1"
+        class="attio-card kpi-tile"
+        :aria-label="overdueAriaLabel"
+        data-testid="kpi-tile-overdue"
+      >
         <div class="kpi-tile__header">
           <span class="kpi-tile__label">Overdue Balance</span>
-          <span class="status-pill status-pill--overdue">2 overdue</span>
+          <span class="status-pill status-pill--overdue">
+            {{ summary ? `${summary.overdue.overdueInvoiceCount} overdue` : '0 overdue' }}
+          </span>
         </div>
-        <div class="kpi-tile__value kpi-tile__value--overdue tabular-nums">
-          {{ formatZar(42550.0) }}
+        <div
+          class="kpi-tile__value tabular-nums"
+          :class="{
+            'kpi-tile__value--overdue': Boolean(
+              summary && summary.overdue.balance > 0,
+            ),
+          }"
+          data-testid="kpi-overdue-value"
+        >
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="120px"
+            data-testid="kpi-skeleton-value"
+          />
+          <template v-else>
+            {{ formatZar(summary.overdue.balance) }}
+          </template>
         </div>
-        <div class="kpi-tile__meta">Oldest 14 days past due date</div>
-      </div>
+        <div class="kpi-tile__meta" data-testid="kpi-overdue-meta">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="150px"
+            data-testid="kpi-skeleton-meta"
+          />
+          <template v-else-if="summary.overdue.oldestDaysPastDue !== null">
+            Oldest
+            {{ pluralize(summary.overdue.oldestDaysPastDue, 'day') }} past due date
+          </template>
+          <template v-else>Nothing overdue</template>
+        </div>
+      </router-link>
 
-      <div class="attio-card kpi-tile">
+      <!-- Tile 3: Paid This Month -->
+      <router-link
+        to="/invoices?status=Paid"
+        class="attio-card kpi-tile"
+        :aria-label="paidThisMonthAriaLabel"
+        data-testid="kpi-tile-paid"
+      >
         <div class="kpi-tile__header">
           <span class="kpi-tile__label">Paid This Month</span>
           <span class="status-pill status-pill--paid">Settled</span>
         </div>
-        <div class="kpi-tile__value tabular-nums">{{ formatZar(219650.0) }}</div>
-        <div class="kpi-tile__meta">8 invoices paid in full</div>
-      </div>
+        <div class="kpi-tile__value tabular-nums">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="120px"
+            data-testid="kpi-skeleton-value"
+          />
+          <template v-else>
+            {{ formatZar(summary.paidThisMonth.amountReceived) }}
+          </template>
+        </div>
+        <div class="kpi-tile__meta">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="140px"
+            data-testid="kpi-skeleton-meta"
+          />
+          <template v-else>
+            {{ pluralize(summary.paidThisMonth.paidInvoiceCount, 'invoice') }} paid in full
+          </template>
+        </div>
+      </router-link>
 
-      <div class="attio-card kpi-tile">
+      <!-- Tile 4: Draft Pipeline -->
+      <router-link
+        to="/invoices?status=Draft"
+        class="attio-card kpi-tile"
+        :aria-label="draftsAriaLabel"
+        data-testid="kpi-tile-drafts"
+      >
         <div class="kpi-tile__header">
           <span class="kpi-tile__label">Draft Pipeline</span>
-          <span class="status-pill status-pill--draft">3 drafts</span>
+          <span class="status-pill status-pill--draft">
+            <template v-if="summary">
+              {{ pluralize(summary.drafts.draftCount, 'draft') }}
+            </template>
+            <template v-else>0 drafts</template>
+          </span>
         </div>
-        <div class="kpi-tile__value tabular-nums">{{ formatZar(31050.0) }}</div>
-        <div class="kpi-tile__meta">Ready to review and send</div>
-      </div>
+        <div class="kpi-tile__value tabular-nums">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="120px"
+            data-testid="kpi-skeleton-value"
+          />
+          <template v-else>
+            {{ formatZar(summary.drafts.total) }}
+          </template>
+        </div>
+        <div class="kpi-tile__meta" data-testid="kpi-drafts-meta">
+          <q-skeleton
+            v-if="loadingSummary || !summary"
+            type="text"
+            width="140px"
+            data-testid="kpi-skeleton-meta"
+          />
+          <template v-else-if="summary.drafts.draftCount > 0">
+            Ready to review and send
+          </template>
+          <template v-else>No drafts</template>
+        </div>
+      </router-link>
     </section>
 
-    <!-- Status Pill Showcase & Quick Actions -->
+    <!-- Recent Invoices Panel -->
     <section class="dashboard-page__grid">
       <div class="attio-card dashboard-panel">
         <div class="dashboard-panel__header">
@@ -78,10 +231,124 @@
             icon-right="arrow_forward"
             to="/invoices"
             class="dashboard-panel__link"
+            data-testid="dashboard-view-all-btn"
           />
         </div>
 
-        <div class="table-scroll">
+        <!-- Recent Invoices Error State -->
+        <div
+          v-if="recentInvoicesError && !loadingRecentInvoices"
+          class="dashboard-state-card"
+          data-testid="dashboard-recent-error"
+        >
+          <q-icon name="error_outline" size="22px" class="dashboard-state-card__icon" />
+          <p class="dashboard-state-card__title">Couldn't load recent invoices.</p>
+          <q-btn
+            outline
+            dense
+            color="primary"
+            label="Try again"
+            data-testid="dashboard-recent-retry-btn"
+            @click="reload()"
+          />
+        </div>
+
+        <!-- Recent Invoices Empty State -->
+        <div
+          v-else-if="!loadingRecentInvoices && recentInvoices.length === 0"
+          class="dashboard-state-card"
+          data-testid="dashboard-recent-empty"
+        >
+          <q-icon name="receipt_long" size="22px" class="dashboard-state-card__icon" />
+          <p class="dashboard-state-card__title">No invoices yet</p>
+          <q-btn
+            color="primary"
+            dense
+            icon="add"
+            label="New invoice"
+            to="/invoices/new"
+            data-testid="dashboard-empty-new-invoice-btn"
+          />
+        </div>
+
+        <!-- Mobile Stacked Cards (xs < 600px) -->
+        <div
+          v-else-if="isMobile"
+          class="dashboard-mobile-list"
+          data-testid="dashboard-mobile-list"
+        >
+          <template v-if="loadingRecentInvoices">
+            <div
+              v-for="n in 5"
+              :key="`mobile-skeleton-${n}`"
+              class="dashboard-mobile-card"
+              data-testid="recent-invoice-skeleton-row"
+            >
+              <div class="dashboard-mobile-card__top">
+                <q-skeleton type="text" width="90px" />
+                <q-skeleton type="text" width="70px" />
+              </div>
+              <q-skeleton type="text" width="140px" />
+              <div class="dashboard-mobile-card__bottom">
+                <q-skeleton type="text" width="100px" />
+                <q-skeleton type="text" width="80px" />
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div
+              v-for="inv in recentInvoices"
+              :key="inv.invoiceId"
+              tabindex="0"
+              role="link"
+              class="dashboard-mobile-card"
+              :class="{ 'row--overdue': isInvoiceRowOverdue(inv, summary?.asOf) }"
+              data-testid="recent-invoice-row"
+              @click="openInvoiceDetail(inv.invoiceId)"
+              @keydown.enter.prevent="openInvoiceDetail(inv.invoiceId)"
+            >
+              <div class="dashboard-mobile-card__top">
+                <span
+                  class="tabular-nums font-medium"
+                  :class="{ 'invoice-number--draft': !inv.invoiceNumber }"
+                >
+                  {{ inv.invoiceNumber ?? 'Draft' }}
+                </span>
+                <div class="invoice-status-group">
+                  <span :class="statusPillClass(inv.status)">{{ inv.status }}</span>
+                  <span
+                    v-if="isPartiallyPaid(inv)"
+                    class="status-pill status-pill--partially-paid"
+                    data-testid="partially-paid-badge"
+                  >
+                    Partially paid
+                  </span>
+                </div>
+              </div>
+
+              <div class="dashboard-mobile-card__customer">
+                <span v-if="inv.customerName">{{ inv.customerName }}</span>
+                <q-skeleton
+                  v-else-if="isCustomerLoading(inv.customerId)"
+                  type="text"
+                  width="120px"
+                  data-testid="customer-name-skeleton"
+                />
+                <span v-else>{{ getCustomerName(inv.customerId) }}</span>
+              </div>
+
+              <div class="dashboard-mobile-card__bottom">
+                <span class="tabular-nums text-secondary">
+                  {{ inv.dueDate ? formatDateZa(inv.dueDate) : '—' }}
+                </span>
+                <span class="text-money font-medium">{{ formatZar(inv.balance) }}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Desktop Table (sm and up) -->
+        <div v-else class="table-scroll">
           <table class="attio-table dashboard-table">
             <thead>
               <tr>
@@ -94,20 +361,66 @@
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="inv in sampleInvoices"
-                :key="inv.invoiceNumber"
-                :class="{ 'row--overdue': inv.status === 'Overdue' }"
-              >
-                <td class="tabular-nums font-medium">{{ inv.invoiceNumber }}</td>
-                <td>{{ inv.customer }}</td>
-                <td>
-                  <span class="status-pill" :class="inv.pillClass">{{ inv.badgeLabel }}</span>
-                </td>
-                <td class="tabular-nums text-secondary">{{ formatDateZa(inv.dueDate) }}</td>
-                <td class="text-money">{{ formatZar(inv.total) }}</td>
-                <td class="text-money font-medium">{{ formatZar(inv.balance) }}</td>
-              </tr>
+              <template v-if="loadingRecentInvoices">
+                <tr
+                  v-for="n in 5"
+                  :key="`skeleton-${n}`"
+                  data-testid="recent-invoice-skeleton-row"
+                >
+                  <td><q-skeleton type="text" width="90px" /></td>
+                  <td><q-skeleton type="text" width="140px" /></td>
+                  <td><q-skeleton type="text" width="70px" /></td>
+                  <td><q-skeleton type="text" width="90px" /></td>
+                  <td><q-skeleton type="text" width="90px" class="q-ml-auto" /></td>
+                  <td><q-skeleton type="text" width="90px" class="q-ml-auto" /></td>
+                </tr>
+              </template>
+              <template v-else>
+                <tr
+                  v-for="inv in recentInvoices"
+                  :key="inv.invoiceId"
+                  tabindex="0"
+                  role="link"
+                  class="dashboard-table__row"
+                  :class="{ 'row--overdue': isInvoiceRowOverdue(inv, summary?.asOf) }"
+                  data-testid="recent-invoice-row"
+                  @click="openInvoiceDetail(inv.invoiceId)"
+                  @keydown.enter.prevent="openInvoiceDetail(inv.invoiceId)"
+                >
+                  <td class="tabular-nums font-medium">
+                    <span :class="{ 'invoice-number--draft': !inv.invoiceNumber }">
+                      {{ inv.invoiceNumber ?? 'Draft' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span v-if="inv.customerName">{{ inv.customerName }}</span>
+                    <q-skeleton
+                      v-else-if="isCustomerLoading(inv.customerId)"
+                      type="text"
+                      width="130px"
+                      data-testid="customer-name-skeleton"
+                    />
+                    <span v-else>{{ getCustomerName(inv.customerId) }}</span>
+                  </td>
+                  <td>
+                    <div class="invoice-status-group">
+                      <span :class="statusPillClass(inv.status)">{{ inv.status }}</span>
+                      <span
+                        v-if="isPartiallyPaid(inv)"
+                        class="status-pill status-pill--partially-paid"
+                        data-testid="partially-paid-badge"
+                      >
+                        Partially paid
+                      </span>
+                    </div>
+                  </td>
+                  <td class="tabular-nums text-secondary">
+                    {{ inv.dueDate ? formatDateZa(inv.dueDate) : '—' }}
+                  </td>
+                  <td class="text-money">{{ formatZar(inv.total) }}</td>
+                  <td class="text-money font-medium">{{ formatZar(inv.balance) }}</td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>
@@ -118,80 +431,77 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
 import { useSessionStore } from 'src/features/auth/store'
 import { useBusinessStore } from 'src/features/business/store'
-import { formatDateZa, formatZar } from 'src/shared/formatting/formatters'
+import { useDashboard } from '../composables/useDashboard'
+import {
+  isInvoiceRowOverdue,
+  isPartiallyPaid,
+  statusPillClass,
+} from 'src/features/invoices/status'
+import { formatDateZa, formatZar, pluralize } from 'src/shared/formatting/formatters'
+import { formatInvoiceDate } from 'src/shared/money'
 
+const $q = useQuasar()
+const router = useRouter()
 const sessionStore = useSessionStore()
 const businessStore = useBusinessStore()
+
+const {
+  summary,
+  recentInvoices,
+  loadingSummary,
+  loadingRecentInvoices,
+  summaryError,
+  recentInvoicesError,
+  reload,
+  isCustomerLoading,
+  getCustomerName,
+} = useDashboard()
+
+const isMobile = computed(() => Boolean($q.screen?.lt?.sm))
 
 const showIncompleteBanner = computed(
   () => businessStore.status === 'ready' && !businessStore.isProfileComplete,
 )
 
-interface SampleInvoiceRow {
-  invoiceNumber: string
-  customer: string
-  status: string
-  badgeLabel: string
-  pillClass: string
-  dueDate: string
-  total: number
-  balance: number
-}
+const totalOutstandingAriaLabel = computed(() => {
+  if (!summary.value) {
+    return 'Total outstanding'
+  }
+  const count = summary.value.totalOutstanding.openInvoiceCount
+  return `Total outstanding ${formatZar(summary.value.totalOutstanding.balance)}, Across ${pluralize(count, 'open invoice')}`
+})
 
-const sampleInvoices: SampleInvoiceRow[] = [
-  {
-    invoiceNumber: 'INV-2026-0042',
-    customer: 'Highveld Logistics (Pty) Ltd',
-    status: 'Overdue',
-    badgeLabel: 'Overdue',
-    pillClass: 'status-pill--overdue',
-    dueDate: '2026-10-17',
-    total: 42550.0,
-    balance: 42550.0,
-  },
-  {
-    invoiceNumber: 'INV-2026-0043',
-    customer: 'Cape Winelands Roasters CC',
-    status: 'Sent',
-    badgeLabel: 'Partially paid',
-    pillClass: 'status-pill--partially-paid',
-    dueDate: '2026-11-10',
-    total: 69000.0,
-    balance: 29000.0,
-  },
-  {
-    invoiceNumber: 'INV-2026-0044',
-    customer: 'eThekwini Marine Supplies',
-    status: 'Sent',
-    badgeLabel: 'Sent',
-    pillClass: 'status-pill--sent',
-    dueDate: '2026-11-15',
-    total: 76700.0,
-    balance: 76700.0,
-  },
-  {
-    invoiceNumber: 'INV-2026-0041',
-    customer: 'Stellenbosch Agri Holdings',
-    status: 'Paid',
-    badgeLabel: 'Paid',
-    pillClass: 'status-pill--paid',
-    dueDate: '2026-10-25',
-    total: 94300.0,
-    balance: 0,
-  },
-  {
-    invoiceNumber: 'DRAFT-0019',
-    customer: 'Nguni Digital Advisory',
-    status: 'Draft',
-    badgeLabel: 'Draft',
-    pillClass: 'status-pill--draft',
-    dueDate: '2026-11-30',
-    total: 31050.0,
-    balance: 31050.0,
-  },
-]
+const overdueAriaLabel = computed(() => {
+  if (!summary.value) {
+    return 'Overdue balance'
+  }
+  const count = summary.value.overdue.overdueInvoiceCount
+  return `Overdue balance ${formatZar(summary.value.overdue.balance)}, ${pluralize(count, 'overdue invoice')}`
+})
+
+const paidThisMonthAriaLabel = computed(() => {
+  if (!summary.value) {
+    return 'Paid this month'
+  }
+  const count = summary.value.paidThisMonth.paidInvoiceCount
+  return `Paid this month ${formatZar(summary.value.paidThisMonth.amountReceived)}, ${pluralize(count, 'invoice')} paid in full`
+})
+
+const draftsAriaLabel = computed(() => {
+  if (!summary.value) {
+    return 'Draft pipeline'
+  }
+  const count = summary.value.drafts.draftCount
+  return `Draft pipeline ${formatZar(summary.value.drafts.total)}, ${pluralize(count, 'draft')}`
+})
+
+function openInvoiceDetail(invoiceId: string) {
+  void router.push(`/invoices/${encodeURIComponent(invoiceId)}`)
+}
 </script>
 
 <style scoped lang="scss">
@@ -238,6 +548,13 @@ const sampleInvoices: SampleInvoiceRow[] = [
     gap: 12px;
   }
 
+  &__as-of {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-bottom: -12px;
+  }
+
   &__kpis {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -258,6 +575,20 @@ const sampleInvoices: SampleInvoiceRow[] = [
   display: flex;
   flex-direction: column;
   gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+
+  &:hover {
+    background-color: var(--bg-hover, rgba(0, 0, 0, 0.02));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary, #1976d2);
+    outline-offset: 2px;
+  }
 
   &__header {
     display: flex;
@@ -306,6 +637,27 @@ const sampleInvoices: SampleInvoiceRow[] = [
   }
 }
 
+.dashboard-state-card {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+
+  &__icon {
+    color: var(--text-muted);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+}
+
 .table-scroll {
   width: 100%;
   overflow-x: auto;
@@ -313,18 +665,109 @@ const sampleInvoices: SampleInvoiceRow[] = [
 
 .dashboard-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
 
-  .row--overdue {
-    background-color: var(--row-overdue-bg);
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 16%;
+  }
+
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 28%;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 16%;
+  }
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 14%;
+  }
+
+  th:nth-child(5),
+  td:nth-child(5) {
+    width: 13%;
+  }
+
+  th:nth-child(6),
+  td:nth-child(6) {
+    width: 13%;
+  }
+
+  &__row {
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-primary, #1976d2);
+      outline-offset: -2px;
+    }
   }
 }
 
-.font-medium {
-  font-weight: 500;
+.invoice-number--draft {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
-.text-secondary {
-  color: var(--text-secondary);
+.invoice-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.row--overdue {
+  position: relative;
+
+  td:first-child {
+    box-shadow: inset 3px 0 0 var(--pill-overdue-text);
+  }
+}
+
+.dashboard-mobile-list {
+  display: flex;
+  flex-direction: column;
+  divide-y: 1px solid var(--border-hairline);
+}
+
+.dashboard-mobile-card {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-hairline);
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.row--overdue {
+    box-shadow: inset 3px 0 0 var(--pill-overdue-text);
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__customer {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  &__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12.5px;
+  }
 }
 </style>

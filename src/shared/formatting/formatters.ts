@@ -15,12 +15,32 @@ export function formatZar(amount: number): string {
   return zarFormatter.format(amount)
 }
 
-export function formatDateZa(isoDate: string | Date): string {
-  const date = typeof isoDate === 'string' ? new Date(isoDate) : isoDate
+export function formatDateZa(isoDate: string | Date | null | undefined): string {
+  if (!isoDate) {
+    return '—'
+  }
+  let date: Date
+  if (typeof isoDate === 'string') {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim())
+    date = match
+      ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+      : new Date(isoDate)
+  } else {
+    date = isoDate
+  }
   if (Number.isNaN(date.getTime())) {
     return '—'
   }
   return dateFormatter.format(date)
+}
+
+export function pluralize(
+  count: number,
+  singular: string,
+  plural?: string,
+): string {
+  const label = count === 1 ? singular : (plural ?? `${singular}s`)
+  return `${count} ${label}`
 }
 
 /**

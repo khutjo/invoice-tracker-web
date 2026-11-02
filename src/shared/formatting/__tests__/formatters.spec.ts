@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatZar, roundCentsAwayFromZero } from '../formatters'
+import { formatZar, pluralize, roundCentsAwayFromZero } from '../formatters'
 
 describe('formatters', () => {
   it('rounds half away from zero to two decimals', () => {
@@ -13,5 +13,13 @@ describe('formatters', () => {
     const formatted = formatZar(1250.5)
     expect(formatted).toContain('R')
     expect(formatted).toMatch(/1[\s,\u00a0]?250[.,]50/)
+  })
+
+  it('pluralize handles 0, 1 and 2', () => {
+    expect(pluralize(0, 'invoice')).toBe('0 invoices')
+    expect(pluralize(1, 'invoice')).toBe('1 invoice')
+    expect(pluralize(2, 'invoice')).toBe('2 invoices')
+    expect(pluralize(1, 'day')).toBe('1 day')
+    expect(pluralize(14, 'day')).toBe('14 days')
   })
 })
