@@ -9,7 +9,10 @@ import { useSessionStore } from 'src/features/auth/store'
 import { useBusinessStore } from 'src/features/business/store'
 import { configureApiClientAuth } from 'src/shared/api/client'
 import { createAuthNavigationGuard } from './guards'
+import { setAppRouter } from './instance'
 import routes from './routes'
+
+export { getAppRouter, setAppRouter } from './instance'
 
 export default defineRouter(function ({ store }) {
   const createHistory = process.env.SERVER
@@ -18,11 +21,13 @@ export default defineRouter(function ({ store }) {
       ? createWebHistory
       : createWebHashHistory
 
-  const Router = createRouter({
+  const RouterInstance = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
     routes,
     history: createHistory(process.env.VUE_ROUTER_BASE),
   })
+
+  setAppRouter(RouterInstance)
 
   const sessionStore = useSessionStore(store)
   const businessStore = useBusinessStore(store)
@@ -32,9 +37,9 @@ export default defineRouter(function ({ store }) {
     refreshSession: () => sessionStore.refreshSession(),
     onUnauthorized: async () => {
       sessionStore.clearSessionState()
-      const currentPath = Router.currentRoute.value.fullPath
+      const currentPath = RouterInstance.currentRoute.value.fullPath
       if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
-        await Router.replace({
+        await RouterInstance.replace({
           path: '/login',
           query: { redirect: currentPath },
         })
@@ -42,7 +47,7 @@ export default defineRouter(function ({ store }) {
     },
   })
 
-  Router.beforeEach(createAuthNavigationGuard(sessionStore, businessStore))
+  RouterInstance.beforeEach(createAuthNavigationGuard(sessionStore, businessStore))
 
-  return Router
+  return RouterInstance
 })

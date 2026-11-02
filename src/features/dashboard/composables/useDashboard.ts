@@ -1,8 +1,11 @@
-import { onActivated, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onActivated, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { dashboardApi, type DashboardSummary } from '../api'
 import { invoicesApi, type InvoiceSummary } from 'src/features/invoices/api'
 import { useCustomerNames } from 'src/features/invoices/composables/useCustomerNames'
+import { useNotificationFeedStore } from 'src/features/notifications/store'
 import { ApiError } from 'src/shared/api/problem'
+
+const LIVE_RELOAD_DEBOUNCE_MS = 500
 
 function isAbortedError(err: unknown, signal: AbortSignal): boolean {
   if (signal.aborted) {
@@ -25,6 +28,8 @@ export function useDashboard() {
   const summaryError = ref<string | null>(null)
   const recentInvoicesError = ref<string | null>(null)
 
+  const notificationFeedStore = useNotificationFeedStore()
+
   const {
     resolveCustomerIds,
     setCustomerName,
@@ -33,6 +38,14 @@ export function useDashboard() {
   } = useCustomerNames()
 
   let activeController: AbortController | null = null
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+  function clearDebounceTimer() {
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer)
+      debounceTimer = null
+    }
+  }
 
   function abortInFlight() {
     if (activeController) {
@@ -41,14 +54,21 @@ export function useDashboard() {
     }
   }
 
-  async function reload(): Promise<void> {
+  async function reload(options?: { background?: boolean }): Promise<void> {
+    clearDebounceTimer()
     abortInFlight()
     const controller = new AbortController()
     activeController = controller
     const { signal } = controller
 
-    loadingSummary.value = true
-    loadingRecentInvoices.value = true
+    const isBackground = Boolean(options?.background)
+
+    if (!isBackground || summary.value === null) {
+      loadingSummary.value = true
+    }
+    if (!isBackground) {
+      loadingRecentInvoices.value = true
+    }
     summaryError.value = null
     recentInvoicesError.value = null
 
@@ -59,10 +79,12 @@ export function useDashboard() {
         summary.value = res
       } catch (err) {
         if (isAbortedError(err, signal)) return
-        summaryError.value =
-          err instanceof ApiError && err.message
-            ? err.message
-            : "Couldn't load the summary."
+        if (!isBackground || summary.value === null) {
+          summaryError.value =
+            err instanceof ApiError && err.message
+              ? err.message
+              : "Couldn't load the summary."
+        }
       } finally {
         if (!signal.aborted) {
           loadingSummary.value = false
@@ -92,10 +114,12 @@ export function useDashboard() {
         }
       } catch (err) {
         if (isAbortedError(err, signal)) return
-        recentInvoicesError.value =
-          err instanceof ApiError && err.message
-            ? err.message
-            : "Couldn't load recent invoices."
+        if (!isBackground) {
+          recentInvoicesError.value =
+            err instanceof ApiError && err.message
+              ? err.message
+              : "Couldn't load recent invoices."
+        }
       } finally {
         if (!signal.aborted) {
           loadingRecentInvoices.value = false
@@ -106,6 +130,17 @@ export function useDashboard() {
     await Promise.all([summaryTask, recentTask])
   }
 
+  watch(
+    () => notificationFeedStore.changeVersion,
+    () => {
+      clearDebounceTimer()
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null
+        void reload({ background: true })
+      }, LIVE_RELOAD_DEBOUNCE_MS)
+    },
+  )
+
   onMounted(() => {
     void reload()
   })
@@ -115,6 +150,7 @@ export function useDashboard() {
   })
 
   onBeforeUnmount(() => {
+    clearDebounceTimer()
     abortInFlight()
   })
 

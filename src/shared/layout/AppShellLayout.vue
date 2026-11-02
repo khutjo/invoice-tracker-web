@@ -50,6 +50,20 @@
           >
             <q-icon :name="item.icon" size="18px" class="app-sidebar__link-icon" />
             <span class="app-sidebar__link-label">{{ item.label }}</span>
+            <span
+              v-if="item.to === '/notifications' && showConnectionHint"
+              class="app-sidebar__status-dot"
+              title="Live updates paused, reconnecting…"
+              aria-label="Live updates paused, reconnecting…"
+              data-testid="notifications-connection-dot"
+            />
+            <span
+              v-if="item.to === '/notifications' && unreadBadgeLabel"
+              class="app-sidebar__nav-badge tabular-nums"
+              data-testid="notifications-unread-badge"
+            >
+              {{ unreadBadgeLabel }}
+            </span>
           </router-link>
         </nav>
 
@@ -173,11 +187,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useSessionStore } from 'src/features/auth/store'
 import { useBusinessStore } from 'src/features/business/store'
+import { useNotificationFeedStore } from 'src/features/notifications/store'
 import CommandPaletteDialog from 'src/shared/layout/CommandPaletteDialog.vue'
 
 interface NavItem {
@@ -191,6 +206,7 @@ const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
 const businessStore = useBusinessStore()
+const notificationFeedStore = useNotificationFeedStore()
 
 const drawerOpen = ref($q.screen.gt.sm)
 const commandPaletteOpen = ref(false)
@@ -199,6 +215,21 @@ const businessName = computed(() => businessStore.businessName)
 const userRole = computed(() => sessionStore.role ?? 'Owner')
 const businessLogoUrl = computed(() => businessStore.logoUrl)
 const businessInitials = computed(() => businessStore.businessInitials)
+
+const unreadBadgeLabel = computed(() => {
+  const count = notificationFeedStore.unreadCount
+  if (count <= 0) {
+    return ''
+  }
+  return count > 9 ? '9+' : String(count)
+})
+
+const showConnectionHint = computed(
+  () =>
+    notificationFeedStore.status === 'reconnecting' ||
+    (notificationFeedStore.status === 'disconnected' &&
+      notificationFeedStore.hasFailedStart),
+)
 
 const primaryNavItems: NavItem[] = [
   { label: 'Dashboard', icon: 'space_dashboard', to: '/dashboard' },
@@ -240,12 +271,35 @@ function handleGlobalKeydown(event: KeyboardEvent) {
   }
 }
 
+watch(
+  () => sessionStore.isAuthenticated,
+  (isAuth) => {
+    if (isAuth) {
+      void notificationFeedStore.connect()
+    } else {
+      void notificationFeedStore.disconnect()
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/notifications' || path.startsWith('/notifications/')) {
+      notificationFeedStore.markAllRead()
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
+  void notificationFeedStore.disconnect()
 })
 </script>
 
@@ -412,6 +466,36 @@ onBeforeUnmount(() => {
 
   &__link-icon {
     color: var(--text-secondary);
+  }
+
+  &__link-label {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pill-partial-text, #b45309);
+    flex-shrink: 0;
+  }
+
+  &__nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    background: var(--pill-sent-bg);
+    color: var(--pill-sent-text);
+    border: 1px solid var(--pill-sent-border);
+    flex-shrink: 0;
   }
 }
 
