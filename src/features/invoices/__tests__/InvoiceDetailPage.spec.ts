@@ -266,17 +266,27 @@ describe('InvoiceDetailPage', () => {
     const callsBeforeBump = searchNotifSpy.mock.calls.length
     const feedStore = useNotificationFeedStore()
 
-    // Bump changeVersion for a DIFFERENT invoice -> no refetch
-    feedStore.lastInvoiceId = 'inv-other'
-    feedStore.changeVersion += 1
-    await flushPromises()
-    expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump)
+    // The live refresh is debounced, so drive the timer explicitly
+    vi.useFakeTimers()
+    try {
+      // Bump changeVersion for a DIFFERENT invoice -> no refetch
+      feedStore.lastInvoiceId = 'inv-other'
+      feedStore.changeVersion += 1
+      await flushPromises()
+      vi.advanceTimersByTime(500)
+      await flushPromises()
+      expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump)
 
-    // Bump changeVersion for THIS invoice ('inv-200') -> quiet refetch
-    feedStore.lastInvoiceId = 'inv-200'
-    feedStore.changeVersion += 1
-    await flushPromises()
-    expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump + 1)
+      // Bump changeVersion for THIS invoice ('inv-200') -> quiet refetch after the debounce
+      feedStore.lastInvoiceId = 'inv-200'
+      feedStore.changeVersion += 1
+      await flushPromises()
+      vi.advanceTimersByTime(500)
+      await flushPromises()
+      expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump + 1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   describe('payments, credit and reminders', () => {
