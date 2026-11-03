@@ -1,9 +1,5 @@
 <template>
-  <div
-    v-if="showProvisioning"
-    class="provisioning-gate"
-    data-testid="business-provisioning-state"
-  >
+  <div v-if="showProvisioning" class="provisioning-gate" data-testid="business-provisioning-state">
     <div class="attio-card provisioning-card">
       <q-spinner color="primary" size="28px" />
       <h1 class="text-heading-lg">Setting up your business…</h1>
@@ -24,8 +20,8 @@
       </div>
       <h1 class="text-heading-lg">We couldn't load your business yet</h1>
       <p class="provisioning-card__copy">
-        Your business profile is taking longer than usual to finish provisioning, or the
-        server could not be reached.
+        Your business profile is taking longer than usual to finish provisioning, or the server
+        could not be reached.
       </p>
       <div class="provisioning-card__actions">
         <q-btn
@@ -79,11 +75,7 @@ async function handleRetry() {
   retrying.value = true
   try {
     const nextStatus = await businessStore.loadProfile()
-    if (
-      nextStatus === 'ready' &&
-      sessionStore.isOwner &&
-      !businessStore.isProfileComplete
-    ) {
+    if (nextStatus === 'ready' && sessionStore.isOwner && !businessStore.isProfileComplete) {
       await router.replace('/setup')
     }
   } finally {

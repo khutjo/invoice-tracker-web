@@ -76,26 +76,20 @@ describe('useBusinessStore', () => {
     store.version = 'v-initial'
     store.status = 'ready'
 
-    const updateDetailsSpy = vi
-      .spyOn(businessApi, 'updateDetails')
-      .mockResolvedValueOnce({
-        ...sampleDetails,
-        name: 'Updated Name',
-        version: 'v-after-details',
-      })
+    const updateDetailsSpy = vi.spyOn(businessApi, 'updateDetails').mockResolvedValueOnce({
+      ...sampleDetails,
+      name: 'Updated Name',
+      version: 'v-after-details',
+    })
 
-    const saveSettingsSpy = vi
-      .spyOn(businessApi, 'saveSettings')
-      .mockResolvedValueOnce({
-        defaultPaymentTermsDays: 14,
-        timeZone: 'Africa/Johannesburg',
-        version: 'v-after-settings',
-      })
+    const saveSettingsSpy = vi.spyOn(businessApi, 'saveSettings').mockResolvedValueOnce({
+      defaultPaymentTermsDays: 14,
+      timeZone: 'Africa/Johannesburg',
+      version: 'v-after-settings',
+    })
 
     await store.saveDetails({ name: 'Updated Name' })
-    expect(updateDetailsSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ version: 'v-initial' }),
-    )
+    expect(updateDetailsSpy).toHaveBeenCalledWith(expect.objectContaining({ version: 'v-initial' }))
     expect(store.version).toBe('v-after-details')
 
     await store.saveSettings({

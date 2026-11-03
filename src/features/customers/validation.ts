@@ -1,8 +1,5 @@
 import type { ContactNumberType } from 'src/features/business/api'
-import {
-  isAddressDraftStarted,
-  type AddressDraft,
-} from 'src/features/business/validation'
+import { isAddressDraftStarted, type AddressDraft } from 'src/features/business/validation'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const VAT_REGEX = /^4\d{9}$/

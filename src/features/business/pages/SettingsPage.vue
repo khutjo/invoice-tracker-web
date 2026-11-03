@@ -5,8 +5,8 @@
       <div>
         <h1 class="text-heading-lg">Settings</h1>
         <p class="settings-page__subtitle">
-          Manage your business profile, South African VAT registration, banking details and
-          invoice defaults.
+          Manage your business profile, South African VAT registration, banking details and invoice
+          defaults.
         </p>
       </div>
     </div>
@@ -41,12 +41,7 @@
       class="settings-mobile-tabs"
       @update:model-value="scrollToSection(String($event))"
     >
-      <q-tab
-        v-for="sec in sections"
-        :key="sec.id"
-        :name="sec.id"
-        :label="sec.label"
-      />
+      <q-tab v-for="sec in sections" :key="sec.id" :name="sec.id" :label="sec.label" />
     </q-tabs>
 
     <div class="settings-page__layout">
@@ -78,11 +73,7 @@
             </div>
           </div>
 
-          <div
-            v-if="cardBanners.business"
-            role="alert"
-            class="settings-card__banner"
-          >
+          <div v-if="cardBanners.business" role="alert" class="settings-card__banner">
             {{ cardBanners.business }}
           </div>
 
@@ -175,9 +166,7 @@
           <div class="settings-card__body">
             <div class="settings-card__row">
               <div class="auth-field">
-                <label class="field-label" for="settings-support-email">
-                  Support email
-                </label>
+                <label class="field-label" for="settings-support-email"> Support email </label>
                 <q-input
                   id="settings-support-email"
                   v-model="contactDraft.supportEmail"
@@ -208,9 +197,7 @@
                 </div>
 
                 <div class="auth-field">
-                  <label class="field-label" for="settings-contact-number">
-                    Contact number
-                  </label>
+                  <label class="field-label" for="settings-contact-number"> Contact number </label>
                   <q-input
                     id="settings-contact-number"
                     v-model="contactDraft.contactNumber"
@@ -455,9 +442,7 @@
               </div>
 
               <div v-if="isOwner" class="logo-card-body__controls">
-                <label class="field-label" for="settings-logo-file">
-                  Upload or replace logo
-                </label>
+                <label class="field-label" for="settings-logo-file"> Upload or replace logo </label>
                 <input
                   id="settings-logo-file"
                   ref="logoFileInputRef"
@@ -631,14 +616,16 @@ const timeZoneOptions = computed(
 )
 
 const paymentTermsSelectOptions = computed(() => {
-  const base = (businessStore.lookups?.paymentTerms ?? [
-    { days: 0, label: 'Due on receipt' },
-    { days: 7, label: '7 days' },
-    { days: 14, label: '14 days' },
-    { days: 30, label: '30 days' },
-    { days: 60, label: '60 days' },
-    { days: 90, label: '90 days' },
-  ]).map((t) => ({
+  const base = (
+    businessStore.lookups?.paymentTerms ?? [
+      { days: 0, label: 'Due on receipt' },
+      { days: 7, label: '7 days' },
+      { days: 14, label: '14 days' },
+      { days: 30, label: '30 days' },
+      { days: 60, label: '60 days' },
+      { days: 90, label: '90 days' },
+    ]
+  ).map((t) => ({
     value: t.days,
     label: t.label,
   }))
@@ -934,9 +921,7 @@ async function saveContactCard() {
     const phone = contactDraft.contactNumber.trim()
     await businessStore.saveDetails({
       supportEmail: email || null,
-      contactNumber: phone
-        ? { number: phone, type: contactDraft.contactType }
-        : null,
+      contactNumber: phone ? { number: phone, type: contactDraft.contactType } : null,
     })
     resetContactCard()
     $q.notify({ type: 'positive', message: 'Contact details saved.' })
@@ -974,13 +959,7 @@ async function saveAddressCard() {
   } catch (err) {
     populateCardErrors(
       err,
-      [
-        'address.line1',
-        'address.line2',
-        'address.suburb',
-        'address.city',
-        'address.postalCode',
-      ],
+      ['address.line1', 'address.line2', 'address.suburb', 'address.city', 'address.postalCode'],
       addressServerErrors,
       'address',
     )

@@ -53,8 +53,8 @@
             {{ errorMessage }}
           </h1>
           <p class="verify-card__text">
-            Please check that you opened the complete verification link from your email, or
-            return to the sign-in screen.
+            Please check that you opened the complete verification link from your email, or return
+            to the sign-in screen.
           </p>
           <q-btn
             color="primary"
@@ -103,8 +103,7 @@ onMounted(async () => {
   } catch (err) {
     if (err instanceof ApiError) {
       if (err.isNetworkError || err.status >= 500) {
-        errorMessage.value =
-          "We couldn't reach the server. Check your connection and try again."
+        errorMessage.value = "We couldn't reach the server. Check your connection and try again."
       } else if (err.problem?.title) {
         errorMessage.value = err.problem.title
       } else {

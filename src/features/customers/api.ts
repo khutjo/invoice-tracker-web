@@ -73,10 +73,7 @@ export function searchCustomers(
   )
 }
 
-export function getCustomer(
-  customerId: string,
-  signal?: AbortSignal,
-): Promise<CustomerDetails> {
+export function getCustomer(customerId: string, signal?: AbortSignal): Promise<CustomerDetails> {
   return apiClient.get<CustomerDetails>(
     `/customers/${encodeURIComponent(customerId)}`,
     signal ? { signal } : undefined,
@@ -91,10 +88,7 @@ export function updateCustomer(
   customerId: string,
   request: UpdateCustomerRequest,
 ): Promise<CustomerDetails> {
-  return apiClient.put<CustomerDetails>(
-    `/customers/${encodeURIComponent(customerId)}`,
-    request,
-  )
+  return apiClient.put<CustomerDetails>(`/customers/${encodeURIComponent(customerId)}`, request)
 }
 
 export function archiveCustomer(customerId: string): Promise<void> {

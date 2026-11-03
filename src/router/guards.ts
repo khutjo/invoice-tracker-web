@@ -17,8 +17,7 @@ export function createAuthNavigationGuard(
     }
 
     const isPublic = to.matched.some((record) => Boolean(record.meta.public))
-    const requiresAuth =
-      to.matched.some((record) => Boolean(record.meta.requiresAuth)) || !isPublic
+    const requiresAuth = to.matched.some((record) => Boolean(record.meta.requiresAuth)) || !isPublic
     const guestOnly = to.matched.some((record) => Boolean(record.meta.guestOnly))
     const ownerOnly = to.matched.some((record) => Boolean(record.meta.ownerOnly))
 

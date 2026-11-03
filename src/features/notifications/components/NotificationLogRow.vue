@@ -45,21 +45,14 @@
 
       <td>
         <div class="notification-row__recipient">
-          <q-icon
-            :name="channelIcon(item.channel)"
-            size="15px"
-            class="notification-row__icon"
-          />
+          <q-icon :name="channelIcon(item.channel)" size="15px" class="notification-row__icon" />
           <span class="tabular-nums">{{ item.recipient }}</span>
         </div>
       </td>
 
       <td class="text-right">
         <div class="notification-row__status-cell">
-          <NotificationStatusPill
-            :status="item.status"
-            :attempts="item.attempts"
-          />
+          <NotificationStatusPill :status="item.status" :attempts="item.attempts" />
           <button
             type="button"
             class="notification-row__chevron-btn"
@@ -68,20 +61,13 @@
             data-testid="notification-expand-btn"
             @click.stop="emit('toggle')"
           >
-            <q-icon
-              :name="expanded ? 'expand_less' : 'expand_more'"
-              size="18px"
-            />
+            <q-icon :name="expanded ? 'expand_less' : 'expand_more'" size="18px" />
           </button>
         </div>
       </td>
     </tr>
 
-    <tr
-      v-if="expanded"
-      class="notification-row__body-row"
-      data-testid="notification-log-body-row"
-    >
+    <tr v-if="expanded" class="notification-row__body-row" data-testid="notification-log-body-row">
       <td colspan="6">
         <div class="notification-row__body" data-testid="notification-log-body">
           {{ item.body }}
@@ -118,10 +104,7 @@
         </span>
       </div>
       <div class="notification-row__status-cell">
-        <NotificationStatusPill
-          :status="item.status"
-          :attempts="item.attempts"
-        />
+        <NotificationStatusPill :status="item.status" :attempts="item.attempts" />
         <q-icon :name="expanded ? 'expand_less' : 'expand_more'" size="18px" />
       </div>
     </div>
@@ -141,11 +124,7 @@
 
     <div class="notification-card__bottom">
       <div class="notification-row__recipient">
-        <q-icon
-          :name="channelIcon(item.channel)"
-          size="15px"
-          class="notification-row__icon"
-        />
+        <q-icon :name="channelIcon(item.channel)" size="15px" class="notification-row__icon" />
         <span class="tabular-nums">{{ item.recipient }}</span>
       </div>
       <span class="tabular-nums text-secondary" :title="rawTimestamp">
@@ -188,19 +167,12 @@
       </div>
 
       <div class="notification-row__recipient">
-        <q-icon
-          :name="channelIcon(item.channel)"
-          size="15px"
-          class="notification-row__icon"
-        />
+        <q-icon :name="channelIcon(item.channel)" size="15px" class="notification-row__icon" />
         <span class="tabular-nums">{{ item.recipient }}</span>
       </div>
 
       <div class="notification-compact-row__right">
-        <NotificationStatusPill
-          :status="item.status"
-          :attempts="item.attempts"
-        />
+        <NotificationStatusPill :status="item.status" :attempts="item.attempts" />
         <span class="tabular-nums text-secondary" :title="rawTimestamp">
           {{ formattedTime }}
         </span>
@@ -212,10 +184,7 @@
           data-testid="notification-expand-btn"
           @click.stop="emit('toggle')"
         >
-          <q-icon
-            :name="expanded ? 'expand_less' : 'expand_more'"
-            size="18px"
-          />
+          <q-icon :name="expanded ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
       </div>
     </div>
@@ -260,9 +229,7 @@ const emit = defineEmits<{
 }>()
 
 const rawTimestamp = computed(() => props.item.sentAt ?? props.item.createdAt)
-const formattedTime = computed(() =>
-  formatNotificationTimestamp(rawTimestamp.value),
-)
+const formattedTime = computed(() => formatNotificationTimestamp(rawTimestamp.value))
 </script>
 
 <style scoped lang="scss">

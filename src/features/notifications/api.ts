@@ -1,10 +1,6 @@
 import { apiClient } from 'src/shared/api/client'
 import type { Paged } from 'src/shared/api/types'
-import type {
-  NotificationLogItem,
-  NotificationStatus,
-  NotificationType,
-} from './types'
+import type { NotificationLogItem, NotificationStatus, NotificationType } from './types'
 
 export interface NotificationQuery {
   page?: number

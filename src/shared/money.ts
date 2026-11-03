@@ -53,7 +53,7 @@ export function roundHalfAwayFromZero(numerator: bigint, denominator: bigint): b
   if (denominator === 0n) {
     throw new RangeError('Denominator cannot be zero')
   }
-  const sign = (numerator < 0n) !== (denominator < 0n) ? -1n : 1n
+  const sign = numerator < 0n !== denominator < 0n ? -1n : 1n
   const absNum = numerator < 0n ? -numerator : numerator
   const absDen = denominator < 0n ? -denominator : denominator
 
@@ -102,9 +102,7 @@ export function calculateLinePreview(
  * Calculates the full invoice subtotal, per-line VAT sum, and inclusive total.
  * VAT is rounded per line and summed, matching the server's domain model.
  */
-export function calculateInvoicePreview(
-  lines: ReadonlyArray<LineMoneyInput>,
-): InvoiceMoneyPreview {
+export function calculateInvoicePreview(lines: ReadonlyArray<LineMoneyInput>): InvoiceMoneyPreview {
   let subtotalCents = 0n
   let vatTotalCents = 0n
   const linePreviews: LineMoneyPreview[] = []
@@ -137,11 +135,7 @@ export function formatInvoiceDate(isoDate: string | null | undefined): string {
   if (!isoDate) return '—'
   const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim())
   const date = dateOnlyMatch
-    ? new Date(
-        Number(dateOnlyMatch[1]),
-        Number(dateOnlyMatch[2]) - 1,
-        Number(dateOnlyMatch[3]),
-      )
+    ? new Date(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]))
     : new Date(isoDate)
   if (Number.isNaN(date.getTime())) {
     return '—'

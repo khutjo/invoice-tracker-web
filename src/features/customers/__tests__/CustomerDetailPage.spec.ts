@@ -118,16 +118,12 @@ describe('CustomerDetailPage', () => {
     expect(wrapper.find('[data-testid="customer-archived-pill"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="customer-edit-btn"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="customer-archive-btn"]').exists()).toBe(false)
-    expect(wrapper.find('[data-testid="customer-new-invoice-btn"]').exists()).toBe(
-      false,
-    )
+    expect(wrapper.find('[data-testid="customer-new-invoice-btn"]').exists()).toBe(false)
   })
 
   it('calls archiveCustomer only after confirming in the archive dialog', async () => {
     vi.spyOn(customersApi, 'getCustomer').mockResolvedValueOnce(activeCustomer)
-    const archiveSpy = vi
-      .spyOn(customersApi, 'archiveCustomer')
-      .mockResolvedValueOnce(undefined)
+    const archiveSpy = vi.spyOn(customersApi, 'archiveCustomer').mockResolvedValueOnce(undefined)
     vi.spyOn(customersApi, 'searchCustomers').mockResolvedValue({
       items: [],
       page: 1,

@@ -138,12 +138,8 @@
               {{ cust.customerReference }}
             </div>
           </div>
-          <span v-if="cust.isArchived" class="status-pill status-pill--draft">
-            Archived
-          </span>
-          <span v-else class="status-pill status-pill--paid">
-            Active
-          </span>
+          <span v-if="cust.isArchived" class="status-pill status-pill--draft"> Archived </span>
+          <span v-else class="status-pill status-pill--paid"> Active </span>
         </div>
         <div class="customer-mobile-card__meta">
           <span>{{ cust.email }}</span>
@@ -199,10 +195,7 @@
             >
               <td>
                 <div class="customers-table__name">{{ cust.name }}</div>
-                <div
-                  v-if="cust.customerReference"
-                  class="customers-table__ref tabular-nums"
-                >
+                <div v-if="cust.customerReference" class="customers-table__ref tabular-nums">
                   {{ cust.customerReference }}
                 </div>
               </td>
@@ -245,9 +238,7 @@
               :value="currentPageSize"
               class="customers-pagination__size-select"
               data-testid="customers-page-size-select"
-              @change="
-                changePageSize(Number(($event.target as HTMLSelectElement).value))
-              "
+              @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
             >
               <option :value="10">10</option>
               <option :value="20">20</option>
@@ -280,11 +271,7 @@
     </div>
 
     <!-- Create Customer Drawer / Dialog -->
-    <CustomerForm
-      v-model="createDrawerOpen"
-      :customer="null"
-      @created="onCustomerCreated"
-    />
+    <CustomerForm v-model="createDrawerOpen" :customer="null" @created="onCustomerCreated" />
   </q-page>
 </template>
 
@@ -316,9 +303,7 @@ function parseQueryFromRoute() {
   const rawArchived = route.query.archived
 
   const page = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1
-  const pageSize = ALLOWED_PAGE_SIZES.includes(
-    rawPageSize as (typeof ALLOWED_PAGE_SIZES)[number],
-  )
+  const pageSize = ALLOWED_PAGE_SIZES.includes(rawPageSize as (typeof ALLOWED_PAGE_SIZES)[number])
     ? rawPageSize
     : 20
   const includeArchived = rawArchived === '1' || rawArchived === 'true'
@@ -339,9 +324,7 @@ const currentPageSize = computed(() => parseQueryFromRoute().pageSize)
 const items = computed(() => customersStore.pageData.items)
 const totalCount = computed(() => customersStore.pageData.totalCount)
 
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(totalCount.value / currentPageSize.value)),
-)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / currentPageSize.value)))
 
 const paginationRangeText = computed(() => {
   if (totalCount.value === 0) {

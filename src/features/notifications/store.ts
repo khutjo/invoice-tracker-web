@@ -1,23 +1,13 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import {
-  HubConnectionBuilder,
-  LogLevel,
-  type HubConnection,
-} from '@microsoft/signalr'
+import { HubConnectionBuilder, LogLevel, type HubConnection } from '@microsoft/signalr'
 import { Notify } from 'quasar'
 import { useSessionStore } from 'src/features/auth/store'
 import { getAppRouter } from 'src/router/instance'
-import {
-  describeNotification,
-  type NotificationSentMessage,
-} from './types'
+import { describeNotification, type NotificationSentMessage } from './types'
 
 export type NotificationConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
+  'disconnected' | 'connecting' | 'connected' | 'reconnecting'
 
 const INITIAL_RETRY_DELAYS_MS = [2000, 5000, 10000, 30000] as const
 const MAX_LATEST_MESSAGES = 20
@@ -48,8 +38,7 @@ export const useNotificationFeedStore = defineStore('notificationFeed', () => {
     const now = Date.now()
     const tokenMissing = !sessionStore.accessToken
     const expiringSoon =
-      !sessionStore.expiresAt ||
-      sessionStore.expiresAt - now <= TOKEN_EXPIRY_BUFFER_MS
+      !sessionStore.expiresAt || sessionStore.expiresAt - now <= TOKEN_EXPIRY_BUFFER_MS
 
     if (tokenMissing || expiringSoon) {
       const refreshed = await sessionStore.refreshSession()
@@ -76,9 +65,7 @@ export const useNotificationFeedStore = defineStore('notificationFeed', () => {
           handler: () => {
             const router = getAppRouter()
             if (router) {
-              void router.push(
-                `/invoices/${encodeURIComponent(message.invoiceId)}`,
-              )
+              void router.push(`/invoices/${encodeURIComponent(message.invoiceId)}`)
             }
           },
         },
@@ -128,10 +115,7 @@ export const useNotificationFeedStore = defineStore('notificationFeed', () => {
       return
     }
 
-    const delayIndex = Math.min(
-      retryAttempt,
-      INITIAL_RETRY_DELAYS_MS.length - 1,
-    )
+    const delayIndex = Math.min(retryAttempt, INITIAL_RETRY_DELAYS_MS.length - 1)
     const delayMs = INITIAL_RETRY_DELAYS_MS[delayIndex] ?? 30000
     retryAttempt += 1
 

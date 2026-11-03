@@ -50,9 +50,7 @@
 
     <div class="bank-details-fields__row">
       <div class="auth-field">
-        <label class="field-label" :for="`${idPrefix}-account-holder`">
-          Account holder
-        </label>
+        <label class="field-label" :for="`${idPrefix}-account-holder`"> Account holder </label>
         <q-input
           :id="`${idPrefix}-account-holder`"
           :model-value="modelValue.accountHolder"
@@ -89,9 +87,7 @@
 
     <div class="bank-details-fields__row">
       <div class="auth-field">
-        <label class="field-label" :for="`${idPrefix}-account-number`">
-          Account number
-        </label>
+        <label class="field-label" :for="`${idPrefix}-account-number`"> Account number </label>
         <q-input
           :id="`${idPrefix}-account-number`"
           :model-value="modelValue.accountNumber"
@@ -130,11 +126,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type {
-  BankAccountType,
-  BankLookupOption,
-  LookupOption,
-} from 'src/features/business/api'
+import type { BankAccountType, BankLookupOption, LookupOption } from 'src/features/business/api'
 import type { BankDraft } from 'src/features/business/validation'
 
 const props = withDefaults(

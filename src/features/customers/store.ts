@@ -1,12 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { LocationQueryRaw } from 'vue-router'
-import {
-  customersApi,
-  type CustomerDetails,
-  type CustomerSummary,
-  type Paged,
-} from './api'
+import { customersApi, type CustomerDetails, type CustomerSummary, type Paged } from './api'
 
 export interface CustomersListQueryState {
   search: string
@@ -94,9 +89,7 @@ export const useCustomersStore = defineStore('customers', () => {
   }
 
   function updateSummaryRowFromDetails(details: CustomerDetails) {
-    const idx = pageData.value.items.findIndex(
-      (item) => item.customerId === details.customerId,
-    )
+    const idx = pageData.value.items.findIndex((item) => item.customerId === details.customerId)
     if (idx === -1) return
 
     const updatedSummary: CustomerSummary = {

@@ -37,10 +37,7 @@ vi.mock('@microsoft/signalr', () => {
     private url = ''
     private accessTokenFactory?: () => string | Promise<string>
 
-    withUrl(
-      url: string,
-      options?: { accessTokenFactory?: () => string | Promise<string> },
-    ) {
+    withUrl(url: string, options?: { accessTokenFactory?: () => string | Promise<string> }) {
       this.url = url
       if (options?.accessTokenFactory) {
         this.accessTokenFactory = options.accessTokenFactory
@@ -57,19 +54,14 @@ vi.mock('@microsoft/signalr', () => {
     }
 
     build() {
-      const handlers = new Map<
-        string,
-        Array<(payload: NotificationSentMessage) => void>
-      >()
+      const handlers = new Map<string, Array<(payload: NotificationSentMessage) => void>>()
       const reconnectingHandlers: Array<() => void> = []
       const reconnectedHandlers: Array<() => void> = []
       const closeHandlers: Array<() => void> = []
 
       const record: FakeConnectionRecord = {
         url: this.url,
-        ...(this.accessTokenFactory
-          ? { accessTokenFactory: this.accessTokenFactory }
-          : {}),
+        ...(this.accessTokenFactory ? { accessTokenFactory: this.accessTokenFactory } : {}),
         handlers,
         reconnectingHandlers,
         reconnectedHandlers,
@@ -96,10 +88,7 @@ vi.mock('@microsoft/signalr', () => {
       createdConnections.push(record)
 
       return {
-        on(
-          eventName: string,
-          callback: (payload: NotificationSentMessage) => void,
-        ) {
+        on(eventName: string, callback: (payload: NotificationSentMessage) => void) {
           const list = handlers.get(eventName) ?? []
           list.push(callback)
           handlers.set(eventName, list)
@@ -127,9 +116,7 @@ vi.mock('@microsoft/signalr', () => {
   }
 })
 
-function makeMessage(
-  overrides: Partial<NotificationSentMessage> = {},
-): NotificationSentMessage {
+function makeMessage(overrides: Partial<NotificationSentMessage> = {}): NotificationSentMessage {
   return {
     notificationId: 'notif-1',
     invoiceId: 'inv-42',
@@ -170,8 +157,8 @@ describe('notifications: describeNotification & useNotificationFeedStore', () =>
       },
       {
         type: 'PaymentReceived',
-        withNumber: 'Payment receipt sent to Acme (Pty) Ltd for INV-2026-0042',
-        withoutNumber: 'Payment receipt sent to Acme (Pty) Ltd for an invoice',
+        withNumber: 'Payment received for INV-2026-0042 from Acme (Pty) Ltd',
+        withoutNumber: 'Payment received for an invoice from Acme (Pty) Ltd',
       },
       {
         type: 'OverdueReminder1',
@@ -180,24 +167,18 @@ describe('notifications: describeNotification & useNotificationFeedStore', () =>
       },
       {
         type: 'OverdueReminder2',
-        withNumber:
-          'Second overdue reminder sent to Acme (Pty) Ltd for INV-2026-0042',
-        withoutNumber:
-          'Second overdue reminder sent to Acme (Pty) Ltd for an invoice',
+        withNumber: 'Second overdue reminder sent to Acme (Pty) Ltd for INV-2026-0042',
+        withoutNumber: 'Second overdue reminder sent to Acme (Pty) Ltd for an invoice',
       },
       {
         type: 'OverdueFinal',
-        withNumber:
-          'Final overdue notice sent to Acme (Pty) Ltd for INV-2026-0042',
-        withoutNumber:
-          'Final overdue notice sent to Acme (Pty) Ltd for an invoice',
+        withNumber: 'Final overdue notice sent to Acme (Pty) Ltd for INV-2026-0042',
+        withoutNumber: 'Final overdue notice sent to Acme (Pty) Ltd for an invoice',
       },
       {
         type: 'InvoiceCancelled',
-        withNumber:
-          'Cancellation notice sent to Acme (Pty) Ltd for INV-2026-0042',
-        withoutNumber:
-          'Cancellation notice sent to Acme (Pty) Ltd for an invoice',
+        withNumber: 'Cancellation notice sent to Acme (Pty) Ltd for INV-2026-0042',
+        withoutNumber: 'Cancellation notice sent to Acme (Pty) Ltd for an invoice',
       },
     ]
 
@@ -281,9 +262,7 @@ describe('notifications: describeNotification & useNotificationFeedStore', () =>
       actions: Array<{ label: string; handler: () => void }>
     }
     expect(lastCallArg.icon).toBe('notifications_active')
-    expect(lastCallArg.message).toBe(
-      'Invoice INV-2026-0025 sent to Acme (Pty) Ltd by email',
-    )
+    expect(lastCallArg.message).toBe('Invoice INV-2026-0025 sent to Acme (Pty) Ltd by email')
     expect(lastCallArg.actions[0]?.label).toBe('View')
 
     lastCallArg.actions[0]?.handler()
@@ -366,9 +345,7 @@ describe('notifications: describeNotification & useNotificationFeedStore', () =>
     sessionStore.accessToken = 'fresh-token'
     sessionStore.expiresAt = Date.now() + 120_000 // 2 minutes remaining
 
-    const refreshSpy = vi
-      .spyOn(sessionStore, 'refreshSession')
-      .mockResolvedValue('refreshed-token')
+    const refreshSpy = vi.spyOn(sessionStore, 'refreshSession').mockResolvedValue('refreshed-token')
 
     const store = useNotificationFeedStore()
     await store.connect()
@@ -453,30 +430,22 @@ describe('notifications: describeNotification & useNotificationFeedStore', () =>
     const feedStore = useNotificationFeedStore()
 
     // Hidden at 0
-    expect(
-      wrapper.find('[data-testid="notifications-unread-badge"]').exists(),
-    ).toBe(false)
+    expect(wrapper.find('[data-testid="notifications-unread-badge"]').exists()).toBe(false)
 
     // Shows exact count when <= 9
     feedStore.unreadCount = 4
     await flushPromises()
-    expect(
-      wrapper.get('[data-testid="notifications-unread-badge"]').text(),
-    ).toBe('4')
+    expect(wrapper.get('[data-testid="notifications-unread-badge"]').text()).toBe('4')
 
     // Shows 9+ when > 9
     feedStore.unreadCount = 12
     await flushPromises()
-    expect(
-      wrapper.get('[data-testid="notifications-unread-badge"]').text(),
-    ).toBe('9+')
+    expect(wrapper.get('[data-testid="notifications-unread-badge"]').text()).toBe('9+')
 
     // Navigating to /notifications calls markAllRead() and hides the badge
     await router.push('/notifications')
     await flushPromises()
     expect(feedStore.unreadCount).toBe(0)
-    expect(
-      wrapper.find('[data-testid="notifications-unread-badge"]').exists(),
-    ).toBe(false)
+    expect(wrapper.find('[data-testid="notifications-unread-badge"]').exists()).toBe(false)
   })
 })

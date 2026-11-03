@@ -46,13 +46,10 @@ describe('session store and API client single-flight 401 refresh', () => {
       }
 
       if (authHeader === 'Bearer expired-access-token') {
-        return new Response(
-          JSON.stringify({ title: 'Token expired', status: 401 }),
-          {
-            status: 401,
-            headers: { 'Content-Type': 'application/problem+json' },
-          },
-        )
+        return new Response(JSON.stringify({ title: 'Token expired', status: 401 }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/problem+json' },
+        })
       }
 
       if (authHeader === 'Bearer fresh-access-token') {

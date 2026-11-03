@@ -194,18 +194,14 @@ describe('DashboardPage', () => {
   })
 
   it('renders loading skeletons for the 4 KPI tiles and 5 recent invoice rows while requests are in flight', async () => {
-    vi.spyOn(dashboardApi, 'getDashboardSummary').mockReturnValue(
-      new Promise(() => {}),
-    )
+    vi.spyOn(dashboardApi, 'getDashboardSummary').mockReturnValue(new Promise(() => {}))
     vi.spyOn(invoicesApi, 'searchInvoices').mockReturnValue(new Promise(() => {}))
 
     const { wrapper } = await mountDashboardPage()
 
     expect(wrapper.findAll('[data-testid="kpi-skeleton-value"]')).toHaveLength(4)
     expect(wrapper.findAll('[data-testid="kpi-skeleton-meta"]')).toHaveLength(4)
-    expect(
-      wrapper.findAll('[data-testid="recent-invoice-skeleton-row"]'),
-    ).toHaveLength(5)
+    expect(wrapper.findAll('[data-testid="recent-invoice-skeleton-row"]')).toHaveLength(5)
   })
 
   it('formats all 4 KPI values in ZAR, pluralises meta copy, and links each KPI tile to its filtered /invoices route', async () => {
@@ -220,9 +216,7 @@ describe('DashboardPage', () => {
     const { wrapper } = await mountDashboardPage()
     await flushPromises()
 
-    expect(wrapper.get('[data-testid="dashboard-as-of"]').text()).toBe(
-      'Figures as of 2 Nov 2026',
-    )
+    expect(wrapper.get('[data-testid="dashboard-as-of"]').text()).toBe('Figures as of 2 Nov 2026')
 
     const tileOutstanding = wrapper.get('[data-testid="kpi-tile-outstanding"]')
     expect(tileOutstanding.attributes('href')).toBe('/invoices?status=Sent')
@@ -234,9 +228,9 @@ describe('DashboardPage', () => {
     expect(tileOverdue.text()).toContain(formatZar(42550.0))
     expect(tileOverdue.text()).toContain('2 overdue')
     expect(tileOverdue.text()).toContain('Oldest 14 days past due date')
-    expect(
-      wrapper.get('[data-testid="kpi-overdue-value"]').classes(),
-    ).toContain('kpi-tile__value--overdue')
+    expect(wrapper.get('[data-testid="kpi-overdue-value"]').classes()).toContain(
+      'kpi-tile__value--overdue',
+    )
 
     const tilePaid = wrapper.get('[data-testid="kpi-tile-paid"]')
     expect(tilePaid.attributes('href')).toBe('/invoices?status=Paid')
@@ -276,15 +270,11 @@ describe('DashboardPage', () => {
     expect(wrapper.get('[data-testid="kpi-tile-outstanding"]').text()).toContain(
       'Across 1 open invoice',
     )
-    expect(
-      wrapper.get('[data-testid="kpi-overdue-value"]').classes(),
-    ).not.toContain('kpi-tile__value--overdue')
-    expect(wrapper.get('[data-testid="kpi-overdue-meta"]').text()).toBe(
-      'Nothing overdue',
+    expect(wrapper.get('[data-testid="kpi-overdue-value"]').classes()).not.toContain(
+      'kpi-tile__value--overdue',
     )
-    expect(wrapper.get('[data-testid="kpi-tile-paid"]').text()).toContain(
-      '1 invoice paid in full',
-    )
+    expect(wrapper.get('[data-testid="kpi-overdue-meta"]').text()).toBe('Nothing overdue')
+    expect(wrapper.get('[data-testid="kpi-tile-paid"]').text()).toContain('1 invoice paid in full')
     expect(wrapper.get('[data-testid="kpi-drafts-meta"]').text()).toBe('No drafts')
   })
 
@@ -361,9 +351,7 @@ describe('DashboardPage', () => {
     await flushPromises()
 
     // Summary error is shown, but recent invoices table still renders
-    expect(wrapper.find('[data-testid="dashboard-summary-error"]').exists()).toBe(
-      true,
-    )
+    expect(wrapper.find('[data-testid="dashboard-summary-error"]').exists()).toBe(true)
     expect(wrapper.findAll('[data-testid="recent-invoice-row"]')).toHaveLength(5)
 
     await wrapper.get('[data-testid="dashboard-summary-retry-btn"]').trigger('click')
@@ -371,9 +359,7 @@ describe('DashboardPage', () => {
 
     expect(summarySpy).toHaveBeenCalledTimes(2)
     expect(recentSpy).toHaveBeenCalledTimes(2)
-    expect(wrapper.find('[data-testid="dashboard-summary-error"]').exists()).toBe(
-      false,
-    )
+    expect(wrapper.find('[data-testid="dashboard-summary-error"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="dashboard-kpis"]').exists()).toBe(true)
   })
 
@@ -392,18 +378,12 @@ describe('DashboardPage', () => {
     })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="dashboard-incomplete-banner"]').exists()).toBe(
-      true,
-    )
-    expect(
-      wrapper.find('[data-testid="dashboard-complete-setup-btn"]').exists(),
-    ).toBe(false)
+    expect(wrapper.find('[data-testid="dashboard-incomplete-banner"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="dashboard-complete-setup-btn"]').exists()).toBe(false)
 
     sessionStore.role = 'Owner'
     await flushPromises()
 
-    expect(
-      wrapper.find('[data-testid="dashboard-complete-setup-btn"]').exists(),
-    ).toBe(true)
+    expect(wrapper.find('[data-testid="dashboard-complete-setup-btn"]').exists()).toBe(true)
   })
 })

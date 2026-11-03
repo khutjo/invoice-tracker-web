@@ -30,12 +30,8 @@ export function useDashboard() {
 
   const notificationFeedStore = useNotificationFeedStore()
 
-  const {
-    resolveCustomerIds,
-    setCustomerName,
-    isCustomerLoading,
-    getCustomerName,
-  } = useCustomerNames()
+  const { resolveCustomerIds, setCustomerName, isCustomerLoading, getCustomerName } =
+    useCustomerNames()
 
   let activeController: AbortController | null = null
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -81,9 +77,7 @@ export function useDashboard() {
         if (isAbortedError(err, signal)) return
         if (!isBackground || summary.value === null) {
           summaryError.value =
-            err instanceof ApiError && err.message
-              ? err.message
-              : "Couldn't load the summary."
+            err instanceof ApiError && err.message ? err.message : "Couldn't load the summary."
         }
       } finally {
         if (!signal.aborted) {
@@ -94,10 +88,7 @@ export function useDashboard() {
 
     const recentTask = (async () => {
       try {
-        const page = await invoicesApi.searchInvoices(
-          { page: 1, pageSize: 5 },
-          signal,
-        )
+        const page = await invoicesApi.searchInvoices({ page: 1, pageSize: 5 }, signal)
         if (signal.aborted) return
         recentInvoices.value = page.items
 
@@ -116,9 +107,7 @@ export function useDashboard() {
         if (isAbortedError(err, signal)) return
         if (!isBackground) {
           recentInvoicesError.value =
-            err instanceof ApiError && err.message
-              ? err.message
-              : "Couldn't load recent invoices."
+            err instanceof ApiError && err.message ? err.message : "Couldn't load recent invoices."
         }
       } finally {
         if (!signal.aborted) {

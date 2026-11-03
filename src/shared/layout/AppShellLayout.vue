@@ -1,13 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="app-shell">
     <!-- Left Sidebar / Responsive Drawer -->
-    <q-drawer
-      v-model="drawerOpen"
-      :breakpoint="1023"
-      :width="232"
-      bordered
-      class="app-sidebar"
-    >
+    <q-drawer v-model="drawerOpen" :breakpoint="1023" :width="232" bordered class="app-sidebar">
       <div class="app-sidebar__inner">
         <!-- Business Header -->
         <div class="app-sidebar__brand">
@@ -28,11 +22,7 @@
 
         <!-- Quick Command Palette Trigger (Desktop Sidebar) -->
         <div class="app-sidebar__search-wrap">
-          <button
-            type="button"
-            class="app-sidebar__search-btn"
-            @click="commandPaletteOpen = true"
-          >
+          <button type="button" class="app-sidebar__search-btn" @click="commandPaletteOpen = true">
             <q-icon name="search" size="16px" />
             <span>Quick jump...</span>
             <kbd class="app-sidebar__kbd">Ctrl K</kbd>
@@ -170,11 +160,7 @@
           <span>{{ tab.label }}</span>
         </router-link>
 
-        <button
-          type="button"
-          class="app-bottom-nav__tab mobile-tab-btn"
-          @click="drawerOpen = true"
-        >
+        <button type="button" class="app-bottom-nav__tab mobile-tab-btn" @click="drawerOpen = true">
           <q-icon name="more_horiz" size="20px" />
           <span>More</span>
         </button>
@@ -227,8 +213,7 @@ const unreadBadgeLabel = computed(() => {
 const showConnectionHint = computed(
   () =>
     notificationFeedStore.status === 'reconnecting' ||
-    (notificationFeedStore.status === 'disconnected' &&
-      notificationFeedStore.hasFailedStart),
+    (notificationFeedStore.status === 'disconnected' && notificationFeedStore.hasFailedStart),
 )
 
 const primaryNavItems: NavItem[] = [

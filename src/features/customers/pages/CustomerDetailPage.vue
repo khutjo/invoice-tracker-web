@@ -7,11 +7,7 @@
     </div>
 
     <!-- 404 Not Found State -->
-    <div
-      v-else-if="notFound"
-      class="attio-card detail-not-found"
-      data-testid="customer-not-found"
-    >
+    <div v-else-if="notFound" class="attio-card detail-not-found" data-testid="customer-not-found">
       <div class="detail-not-found__code tabular-nums">404</div>
       <h1 class="text-heading-lg">Customer not found</h1>
       <p class="detail-not-found__copy">
@@ -207,9 +203,7 @@
                 v-for="inv in customerInvoices"
                 :key="inv.invoiceId"
                 data-testid="customer-invoice-row"
-                @click="
-                  router.push(`/invoices/${encodeURIComponent(inv.invoiceId)}`)
-                "
+                @click="router.push(`/invoices/${encodeURIComponent(inv.invoiceId)}`)"
               >
                 <td class="tabular-nums">
                   <span :class="{ 'text-muted': !inv.invoiceNumber }">
@@ -249,9 +243,8 @@
           <div class="archive-confirm-card__body">
             <h2 class="text-heading-md">Archive {{ customer.name }}?</h2>
             <p class="archive-confirm-card__copy">
-              Archive {{ customer.name }}? They'll keep their invoices but won't appear in
-              customer lists or the invoice customer picker. This can't be undone from the
-              app.
+              Archive {{ customer.name }}? They'll keep their invoices but won't appear in customer
+              lists or the invoice customer picker. This can't be undone from the app.
             </p>
           </div>
 
@@ -285,11 +278,7 @@ import { useQuasar } from 'quasar'
 import { customersApi, type CustomerDetails } from 'src/features/customers/api'
 import CustomerForm from 'src/features/customers/components/CustomerForm.vue'
 import { useCustomersStore } from 'src/features/customers/store'
-import {
-  invoicesApi,
-  type InvoiceStatus,
-  type InvoiceSummary,
-} from 'src/features/invoices/api'
+import { invoicesApi, type InvoiceStatus, type InvoiceSummary } from 'src/features/invoices/api'
 import { ApiError } from 'src/shared/api/problem'
 import { formatInvoiceDate, formatZar } from 'src/shared/money'
 
@@ -329,8 +318,7 @@ async function loadCustomerInvoices(customerId: string) {
 }
 
 async function loadCustomerDetail() {
-  const customerId =
-    typeof route.params.customerId === 'string' ? route.params.customerId : ''
+  const customerId = typeof route.params.customerId === 'string' ? route.params.customerId : ''
   if (!customerId) {
     notFound.value = true
     loading.value = false

@@ -27,8 +27,8 @@
             Set up {{ businessDisplayName }}
           </h1>
           <p class="setup-card__subtitle">
-            Complete your business details so tax invoices include your SARS registration,
-            contact address and banking information.
+            Complete your business details so tax invoices include your SARS registration, contact
+            address and banking information.
           </p>
         </div>
 
@@ -58,12 +58,7 @@
           class="setup-stepper"
         >
           <!-- Step 1: Business details -->
-          <q-step
-            :name="1"
-            title="Business details"
-            icon="business"
-            :done="currentStep > 1"
-          >
+          <q-step :name="1" title="Business details" icon="business" :done="currentStep > 1">
             <div class="setup-step-body" data-testid="setup-step-1">
               <div class="auth-field">
                 <label class="field-label" for="setup-name">Business name</label>
@@ -118,11 +113,7 @@
               </div>
 
               <div class="setup-step-actions">
-                <button
-                  type="button"
-                  class="setup-step-actions__skip"
-                  @click="finishLater"
-                >
+                <button type="button" class="setup-step-actions__skip" @click="finishLater">
                   Finish later
                 </button>
                 <q-btn
@@ -138,18 +129,11 @@
           </q-step>
 
           <!-- Step 2: Contact & address -->
-          <q-step
-            :name="2"
-            title="Contact & address"
-            icon="place"
-            :done="currentStep > 2"
-          >
+          <q-step :name="2" title="Contact & address" icon="place" :done="currentStep > 2">
             <div class="setup-step-body" data-testid="setup-step-2">
               <div class="setup-step-body__row">
                 <div class="auth-field">
-                  <label class="field-label" for="setup-support-email">
-                    Support email
-                  </label>
+                  <label class="field-label" for="setup-support-email"> Support email </label>
                   <q-input
                     id="setup-support-email"
                     v-model="contactDraft.supportEmail"
@@ -180,9 +164,7 @@
                   </div>
 
                   <div class="auth-field">
-                    <label class="field-label" for="setup-contact-number">
-                      Contact number
-                    </label>
+                    <label class="field-label" for="setup-contact-number"> Contact number </label>
                     <q-input
                       id="setup-contact-number"
                       v-model="contactDraft.contactNumber"
@@ -208,17 +190,8 @@
 
               <div class="setup-step-actions">
                 <div class="setup-step-actions__left">
-                  <q-btn
-                    flat
-                    label="Back"
-                    :disable="savingStep"
-                    @click="currentStep = 1"
-                  />
-                  <button
-                    type="button"
-                    class="setup-step-actions__skip"
-                    @click="finishLater"
-                  >
+                  <q-btn flat label="Back" :disable="savingStep" @click="currentStep = 1" />
+                  <button type="button" class="setup-step-actions__skip" @click="finishLater">
                     Finish later
                   </button>
                 </div>
@@ -235,12 +208,7 @@
           </q-step>
 
           <!-- Step 3: Banking -->
-          <q-step
-            :name="3"
-            title="Banking"
-            icon="account_balance"
-            :done="currentStep > 3"
-          >
+          <q-step :name="3" title="Banking" icon="account_balance" :done="currentStep > 3">
             <div class="setup-step-body" data-testid="setup-step-3">
               <BankDetailsFields
                 v-model="bankDraft"
@@ -253,17 +221,8 @@
 
               <div class="setup-step-actions">
                 <div class="setup-step-actions__left">
-                  <q-btn
-                    flat
-                    label="Back"
-                    :disable="savingStep"
-                    @click="currentStep = 2"
-                  />
-                  <button
-                    type="button"
-                    class="setup-step-actions__skip"
-                    @click="finishLater"
-                  >
+                  <q-btn flat label="Back" :disable="savingStep" @click="currentStep = 2" />
+                  <button type="button" class="setup-step-actions__skip" @click="finishLater">
                     Finish later
                   </button>
                 </div>
@@ -280,11 +239,7 @@
           </q-step>
 
           <!-- Step 4: Invoice defaults & logo -->
-          <q-step
-            :name="4"
-            title="Invoice defaults & logo"
-            icon="tune"
-          >
+          <q-step :name="4" title="Invoice defaults & logo" icon="tune">
             <div class="setup-step-body" data-testid="setup-step-4">
               <div class="setup-step-body__row">
                 <div class="auth-field">
@@ -357,17 +312,8 @@
 
               <div class="setup-step-actions">
                 <div class="setup-step-actions__left">
-                  <q-btn
-                    flat
-                    label="Back"
-                    :disable="savingStep"
-                    @click="currentStep = 3"
-                  />
-                  <button
-                    type="button"
-                    class="setup-step-actions__skip"
-                    @click="finishLater"
-                  >
+                  <q-btn flat label="Back" :disable="savingStep" @click="currentStep = 3" />
+                  <button type="button" class="setup-step-actions__skip" @click="finishLater">
                     Finish later
                   </button>
                 </div>
@@ -396,10 +342,7 @@ import { useSessionStore } from 'src/features/auth/store'
 import BankDetailsFields from 'src/features/business/components/BankDetailsFields.vue'
 import ConflictReloadBanner from 'src/features/business/components/ConflictReloadBanner.vue'
 import PostalAddressFields from 'src/features/business/components/PostalAddressFields.vue'
-import {
-  markSetupSeenThisSession,
-  useBusinessStore,
-} from 'src/features/business/store'
+import { markSetupSeenThisSession, useBusinessStore } from 'src/features/business/store'
 import {
   validateAddressDraft,
   validateBankDraft,
@@ -497,14 +440,16 @@ const timeZoneOptions = computed(
 )
 
 const paymentTermsSelectOptions = computed(() => {
-  const base = (businessStore.lookups?.paymentTerms ?? [
-    { days: 0, label: 'Due on receipt' },
-    { days: 7, label: '7 days' },
-    { days: 14, label: '14 days' },
-    { days: 30, label: '30 days' },
-    { days: 60, label: '60 days' },
-    { days: 90, label: '90 days' },
-  ]).map((item) => ({
+  const base = (
+    businessStore.lookups?.paymentTerms ?? [
+      { days: 0, label: 'Due on receipt' },
+      { days: 7, label: '7 days' },
+      { days: 14, label: '14 days' },
+      { days: 30, label: '30 days' },
+      { days: 60, label: '60 days' },
+      { days: 90, label: '90 days' },
+    ]
+  ).map((item) => ({
     value: item.days,
     label: item.label,
   }))
@@ -550,8 +495,7 @@ function populateFromStore() {
     settingsDraft.defaultPaymentTermsDays = s.defaultPaymentTermsDays
     settingsDraft.timeZone = s.timeZone
   } else if (businessStore.lookups) {
-    settingsDraft.defaultPaymentTermsDays =
-      businessStore.lookups.defaultPaymentTermsDays
+    settingsDraft.defaultPaymentTermsDays = businessStore.lookups.defaultPaymentTermsDays
     settingsDraft.timeZone = businessStore.lookups.defaultTimeZone
   }
 }

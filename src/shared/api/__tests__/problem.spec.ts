@@ -5,9 +5,7 @@ describe('normalizeFieldKey', () => {
   it('maps Lines[2].UnitPrice and lines[2].unitPrice to the same key', () => {
     expect(normalizeFieldKey('Lines[2].UnitPrice')).toBe('lines[2].unitPrice')
     expect(normalizeFieldKey('lines[2].unitPrice')).toBe('lines[2].unitPrice')
-    expect(normalizeFieldKey('Lines[2].UnitPrice')).toBe(
-      normalizeFieldKey('lines[2].unitPrice'),
-    )
+    expect(normalizeFieldKey('Lines[2].UnitPrice')).toBe(normalizeFieldKey('lines[2].unitPrice'))
   })
 })
 
@@ -66,9 +64,7 @@ describe('mapProblemDetails', () => {
       routeEmailMentionsToField: true,
     })
 
-    expect(result.fieldErrors.email).toEqual([
-      'An account with this email address already exists.',
-    ])
+    expect(result.fieldErrors.email).toEqual(['An account with this email address already exists.'])
   })
 
   it('handles responses that are not ProblemDetails gracefully', () => {

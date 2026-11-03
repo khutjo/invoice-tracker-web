@@ -85,8 +85,7 @@ const inputRef = ref<HTMLInputElement | null>(null)
 
 const defaultItems = computed<CommandItem[]>(() => {
   const unread = notificationFeedStore.unreadCount
-  const unreadSuffix =
-    unread > 0 ? ` (${unread > 9 ? '9+' : unread} unread)` : ''
+  const unreadSuffix = unread > 0 ? ` (${unread > 9 ? '9+' : unread} unread)` : ''
 
   return [
     {
