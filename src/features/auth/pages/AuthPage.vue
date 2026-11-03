@@ -70,17 +70,11 @@
               v-if="loginBanner.message"
               role="alert"
               class="auth-banner"
-              :class="
-                loginBanner.variant === 'info'
-                  ? 'auth-banner--info'
-                  : 'auth-banner--error'
-              "
+              :class="loginBanner.variant === 'info' ? 'auth-banner--info' : 'auth-banner--error'"
               data-testid="login-banner"
             >
               <q-icon
-                :name="
-                  loginBanner.variant === 'info' ? 'info_outline' : 'error_outline'
-                "
+                :name="loginBanner.variant === 'info' ? 'info_outline' : 'error_outline'"
                 size="16px"
                 class="auth-banner__icon"
               />
@@ -252,9 +246,7 @@
                     round
                     size="sm"
                     :icon="showRegisterPassword ? 'visibility_off' : 'visibility'"
-                    :aria-label="
-                      showRegisterPassword ? 'Hide password' : 'Show password'
-                    "
+                    :aria-label="showRegisterPassword ? 'Hide password' : 'Show password'"
                     @click="showRegisterPassword = !showRegisterPassword"
                   />
                 </template>
@@ -278,9 +270,7 @@
             </div>
 
             <div class="auth-field">
-              <label class="field-label" for="register-confirm-password">
-                Confirm password
-              </label>
+              <label class="field-label" for="register-confirm-password"> Confirm password </label>
               <q-input
                 id="register-confirm-password"
                 v-model="registerForm.confirmPassword"
@@ -318,8 +308,8 @@
             Invoices, payments and reminders for your business
           </h2>
           <p class="preview-stage__subtext">
-            Issue SARS-ready 15% VAT invoices in ZAR, track partial payments, and automate
-            overdue follow-ups in one calm workspace.
+            Create and send VAT invoices, track partial payments, and send automatic overdue
+            reminders in one calm workspace.
           </p>
         </div>
 

@@ -72,10 +72,7 @@ export function validateInvoiceDraft(draft: InvoiceDraft): Record<string, string
   return errors
 }
 
-export function getSendDisabledReason(
-  lineCount: number,
-  total: number,
-): string | null {
+export function getSendDisabledReason(lineCount: number, total: number): string | null {
   if (lineCount === 0) {
     return 'Add at least one line item before sending.'
   }
@@ -104,11 +101,7 @@ export function getJohannesburgTodayIso(referenceDate: Date = new Date()): strin
 export function addDaysToIsoDate(isoDate: string, days: number): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim())
   if (!match) return isoDate
-  const utc = Date.UTC(
-    Number(match[1]),
-    Number(match[2]) - 1,
-    Number(match[3]) + Math.trunc(days),
-  )
+  const utc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]) + Math.trunc(days))
   const d = new Date(utc)
   const year = d.getUTCFullYear()
   const month = String(d.getUTCMonth() + 1).padStart(2, '0')
@@ -131,11 +124,7 @@ export function getRelativeDueBadge(
   if (!dueMatch || !todayMatch) return null
 
   const dueUtc = Date.UTC(Number(dueMatch[1]), Number(dueMatch[2]) - 1, Number(dueMatch[3]))
-  const todayUtc = Date.UTC(
-    Number(todayMatch[1]),
-    Number(todayMatch[2]) - 1,
-    Number(todayMatch[3]),
-  )
+  const todayUtc = Date.UTC(Number(todayMatch[1]), Number(todayMatch[2]) - 1, Number(todayMatch[3]))
 
   const diffDays = Math.round((dueUtc - todayUtc) / 86_400_000)
 

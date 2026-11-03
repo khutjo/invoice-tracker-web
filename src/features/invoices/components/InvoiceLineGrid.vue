@@ -434,11 +434,7 @@ function updateLine(index: number, patch: Partial<InvoiceLineDraft>) {
   emit('update:modelValue', updated)
 }
 
-function onNumericFieldInput(
-  index: number,
-  field: 'quantity' | 'unitPrice',
-  event: Event,
-) {
+function onNumericFieldInput(index: number, field: 'quantity' | 'unitPrice', event: Event) {
   const raw = (event.target as HTMLInputElement).value
   if (raw === '') {
     return
@@ -609,7 +605,9 @@ function onLastCellEnter(index: number) {
   font-family: inherit;
   font-size: 13px;
   outline: none;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
 
   &:focus {
     border-color: var(--accent-primary);

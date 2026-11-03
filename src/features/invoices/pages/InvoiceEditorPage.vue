@@ -154,9 +154,7 @@
                     @focus="openCustomerPicker"
                     @blur="onCustomerInputBlur"
                     @keydown.enter.prevent="onCustomerInputEnter"
-                    @input="
-                      onCustomerPickerInput(($event.target as HTMLInputElement).value)
-                    "
+                    @input="onCustomerPickerInput(($event.target as HTMLInputElement).value)"
                   />
 
                   <div
@@ -220,9 +218,7 @@
 
               <!-- Payment Terms Days -->
               <div class="auth-field">
-                <label class="field-label" for="editor-payment-terms">
-                  Payment terms (days)
-                </label>
+                <label class="field-label" for="editor-payment-terms"> Payment terms (days) </label>
                 <input
                   id="editor-payment-terms"
                   :value="draft.paymentTermsDays"
@@ -232,17 +228,11 @@
                   step="1"
                   class="customer-picker__input tabular-nums"
                   :class="{
-                    'customer-picker__input--error': Boolean(
-                      mergedErrors.paymentTermsDays,
-                    ),
+                    'customer-picker__input--error': Boolean(mergedErrors.paymentTermsDays),
                   }"
                   :disabled="isBusy"
                   data-testid="editor-payment-terms"
-                  @input="
-                    onPaymentTermsInput(
-                      Number(($event.target as HTMLInputElement).value),
-                    )
-                  "
+                  @input="onPaymentTermsInput(Number(($event.target as HTMLInputElement).value))"
                 />
                 <div
                   v-if="mergedErrors.paymentTermsDays"
@@ -336,11 +326,7 @@ import {
   type CustomerSummary,
 } from 'src/features/customers/api'
 import CustomerForm from 'src/features/customers/components/CustomerForm.vue'
-import {
-  invoicesApi,
-  type InvoiceDetails,
-  type InvoiceInput,
-} from '../api'
+import { invoicesApi, type InvoiceDetails, type InvoiceInput } from '../api'
 import InvoiceLineGrid from '../components/InvoiceLineGrid.vue'
 import { useCustomerNames } from '../composables/useCustomerNames'
 import { useInvoicesStore } from '../store'
@@ -407,9 +393,7 @@ const currentInvoiceId = computed(() =>
 
 const isEditMode = computed(() => currentInvoiceId.value.length > 0)
 
-const isBusy = computed(
-  () => savingDraft.value || savingAndSending.value || reloadingInvoice.value,
-)
+const isBusy = computed(() => savingDraft.value || savingAndSending.value || reloadingInvoice.value)
 
 const backToListLocation = computed(() => ({
   path: '/invoices',
@@ -425,9 +409,7 @@ const backLinkTarget = computed(() =>
 const previewTotals = computed(() => calculateInvoicePreview(draft.lines))
 
 const clientErrors = computed(() => validateInvoiceDraft(draft))
-const hasValidationErrors = computed(
-  () => Object.keys(clientErrors.value).length > 0,
-)
+const hasValidationErrors = computed(() => Object.keys(clientErrors.value).length > 0)
 
 const mergedErrors = computed<Record<string, string>>(() => {
   if (showValidationErrors.value) {
@@ -457,9 +439,7 @@ function serializeDraftState(): string {
 }
 
 const isDirty = computed(
-  () =>
-    cleanSnapshotJson.value.length > 0 &&
-    serializeDraftState() !== cleanSnapshotJson.value,
+  () => cleanSnapshotJson.value.length > 0 && serializeDraftState() !== cleanSnapshotJson.value,
 )
 
 function markClean() {
@@ -489,9 +469,7 @@ onBeforeRouteLeave(() => {
     return true
   }
   if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
-    return window.confirm(
-      'You have unsaved changes on this draft invoice. Leave without saving?',
-    )
+    return window.confirm('You have unsaved changes on this draft invoice. Leave without saving?')
   }
   return true
 })
@@ -654,9 +632,7 @@ function tryAutoMatchCustomerInput() {
   const typed = customerSearchInput.value.trim().toLowerCase()
   if (!typed) return
   const exact = customerPickerOptions.value.find(
-    (c) =>
-      c.name.trim().toLowerCase() === typed ||
-      c.email.trim().toLowerCase() === typed,
+    (c) => c.name.trim().toLowerCase() === typed || c.email.trim().toLowerCase() === typed,
   )
   if (exact) {
     draft.customerId = exact.customerId
@@ -774,9 +750,7 @@ async function handleConflictError(err: ApiError): Promise<void> {
     })
     if (currentInvoiceId.value) {
       allowLeaveWithoutPrompt.value = true
-      await router.replace(
-        `/invoices/${encodeURIComponent(currentInvoiceId.value)}`,
-      )
+      await router.replace(`/invoices/${encodeURIComponent(currentInvoiceId.value)}`)
     }
     return
   }
@@ -809,8 +783,7 @@ function applyValidationError(err: unknown) {
   if (Object.keys(flattened).length === 0) {
     bannerError.value = mapped.title || 'Check the highlighted fields and try again.'
   } else {
-    bannerError.value =
-      Object.values(flattened)[0] || 'Check the highlighted fields and try again.'
+    bannerError.value = Object.values(flattened)[0] || 'Check the highlighted fields and try again.'
   }
 }
 
@@ -823,8 +796,7 @@ async function persistDraft(): Promise<InvoiceDetails | null> {
 
   if (hasValidationErrors.value) {
     bannerError.value =
-      Object.values(clientErrors.value)[0] ||
-      'Please fix the highlighted fields before saving.'
+      Object.values(clientErrors.value)[0] || 'Please fix the highlighted fields before saving.'
     return null
   }
 
@@ -897,9 +869,7 @@ async function handleSaveAndSend() {
     if (createdNewInvoiceId) {
       skipNextRouteFetchId = createdNewInvoiceId
       allowLeaveWithoutPrompt.value = true
-      await router.replace(
-        `/invoices/${encodeURIComponent(createdNewInvoiceId)}/edit`,
-      )
+      await router.replace(`/invoices/${encodeURIComponent(createdNewInvoiceId)}/edit`)
       allowLeaveWithoutPrompt.value = false
     }
     if (err instanceof ApiError && err.status === 409) {

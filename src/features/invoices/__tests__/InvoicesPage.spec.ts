@@ -128,9 +128,7 @@ describe('InvoicesPage', () => {
       totalCount: 0,
     })
 
-    const { wrapper, router } = await mountInvoicesPage(
-      '/invoices?status=Draft&page=3',
-    )
+    const { wrapper, router } = await mountInvoicesPage('/invoices?status=Draft&page=3')
     await flushPromises()
 
     await wrapper.find('[data-testid="status-chip-Sent"]').trigger('click')
@@ -145,5 +143,56 @@ describe('InvoicesPage', () => {
       }),
       expect.any(AbortSignal),
     )
+  })
+
+  it('shows an overpaid invoice as a credit and a part-paid one as partially paid', async () => {
+    const baseRow = {
+      customerId: 'cust-1',
+      customerName: 'Highveld Logistics (Pty) Ltd',
+      issueDate: '2026-11-01',
+      dueDate: '2026-11-15',
+      total: 1610,
+      createdAt: '2026-11-01T08:00:00Z',
+    }
+    vi.spyOn(invoicesApi, 'searchInvoices').mockResolvedValue({
+      items: [
+        {
+          ...baseRow,
+          invoiceId: 'inv-overpaid',
+          invoiceNumber: 'INV-2026-0001',
+          status: 'Paid',
+          amountPaid: 1700,
+          balance: -90,
+        },
+        {
+          ...baseRow,
+          invoiceId: 'inv-partial',
+          invoiceNumber: 'INV-2026-0002',
+          status: 'Sent',
+          amountPaid: 500,
+          balance: 1110,
+        },
+      ],
+      page: 1,
+      pageSize: 20,
+      totalCount: 2,
+    })
+
+    const { wrapper } = await mountInvoicesPage('/invoices')
+    await flushPromises()
+
+    const rows = wrapper.findAll('[data-testid="invoice-row"]')
+    expect(rows).toHaveLength(2)
+
+    const [overpaid, partial] = rows
+    expect(overpaid!.find('[data-testid="credit-badge"]').exists()).toBe(true)
+    expect(overpaid!.find('[data-testid="partially-paid-badge"]').exists()).toBe(false)
+    const creditCell = overpaid!.find('[data-testid="invoice-balance"]').text()
+    expect(creditCell).toContain('CR')
+    expect(creditCell).not.toContain('-')
+
+    expect(partial!.find('[data-testid="partially-paid-badge"]').exists()).toBe(true)
+    expect(partial!.find('[data-testid="credit-badge"]').exists()).toBe(false)
+    expect(partial!.find('[data-testid="invoice-balance"]').text()).not.toContain('CR')
   })
 })

@@ -4,9 +4,7 @@
     <div class="invoices-page__header">
       <div>
         <h1 class="text-heading-lg">Invoices</h1>
-        <p class="invoices-page__subtitle">
-          Track draft, sent, overdue and paid ZAR tax invoices.
-        </p>
+        <p class="invoices-page__subtitle">Track draft, sent, overdue and paid ZAR tax invoices.</p>
       </div>
 
       <q-btn
@@ -65,9 +63,7 @@
               class="toolbar-native-input"
               data-testid="invoices-customer-search-input"
               @focus="onCustomerFilterFocus"
-              @input="
-                onCustomerSearchInput(($event.target as HTMLInputElement).value)
-              "
+              @input="onCustomerSearchInput(($event.target as HTMLInputElement).value)"
             />
             <button
               v-if="activeCustomerId"
@@ -122,9 +118,7 @@
               type="date"
               class="toolbar-native-input tabular-nums"
               data-testid="invoices-issued-from"
-              @change="
-                onIssuedFromChange(($event.target as HTMLInputElement).value)
-              "
+              @change="onIssuedFromChange(($event.target as HTMLInputElement).value)"
             />
           </label>
 
@@ -256,16 +250,19 @@
             >
               Partially paid
             </span>
+            <span
+              v-if="isOverpaid(inv)"
+              class="status-pill status-pill--paid"
+              data-testid="credit-badge"
+            >
+              Credit
+            </span>
           </div>
         </div>
 
         <div class="invoice-mobile-card__customer">
           <span v-if="inv.customerName">{{ inv.customerName }}</span>
-          <q-skeleton
-            v-else-if="isCustomerLoading(inv.customerId)"
-            type="text"
-            width="130px"
-          />
+          <q-skeleton v-else-if="isCustomerLoading(inv.customerId)" type="text" width="130px" />
           <span v-else>{{ getCustomerName(inv.customerId) }}</span>
         </div>
 
@@ -274,6 +271,15 @@
             Due {{ formatInvoiceDate(inv.dueDate) }}
           </span>
           <strong class="tabular-nums">{{ formatZar(inv.total) }}</strong>
+        </div>
+
+        <div
+          v-if="inv.status !== 'Draft' && inv.balance !== inv.total"
+          class="invoice-mobile-card__balance tabular-nums"
+          :class="{ 'invoice-balance--credit': isOverpaid(inv) }"
+          data-testid="invoice-balance"
+        >
+          {{ isOverpaid(inv) ? 'Credit' : 'Balance' }} {{ formatBalance(inv.balance) }}
         </div>
       </div>
 
@@ -327,11 +333,7 @@
               @click="openInvoiceDetail(inv.invoiceId)"
             >
               <td class="tabular-nums">
-                <span
-                  :class="
-                    inv.invoiceNumber ? 'invoice-number' : 'invoice-number--draft'
-                  "
-                >
+                <span :class="inv.invoiceNumber ? 'invoice-number' : 'invoice-number--draft'">
                   {{ inv.invoiceNumber ?? 'Draft' }}
                 </span>
               </td>
@@ -352,13 +354,16 @@
                 {{ formatInvoiceDate(inv.dueDate) }}
               </td>
               <td class="text-money">{{ formatZar(inv.total) }}</td>
-              <td class="text-money">{{ formatZar(inv.balance) }}</td>
+              <td
+                class="text-money"
+                :class="{ 'invoice-balance--credit': isOverpaid(inv) }"
+                data-testid="invoice-balance"
+              >
+                {{ formatBalance(inv.balance) }}
+              </td>
               <td class="text-right">
                 <div class="invoice-status-group invoice-status-group--right">
-                  <span
-                    :class="statusPillClass(inv.status)"
-                    data-testid="invoice-status-pill"
-                  >
+                  <span :class="statusPillClass(inv.status)" data-testid="invoice-status-pill">
                     {{ inv.status }}
                   </span>
                   <span
@@ -367,6 +372,13 @@
                     data-testid="partially-paid-badge"
                   >
                     Partially paid
+                  </span>
+                  <span
+                    v-if="isOverpaid(inv)"
+                    class="status-pill status-pill--paid"
+                    data-testid="credit-badge"
+                  >
+                    Credit
                   </span>
                 </div>
               </td>
@@ -390,9 +402,7 @@
               :value="currentPageSize"
               class="invoices-pagination__size-select"
               data-testid="invoices-page-size-select"
-              @change="
-                changePageSize(Number(($event.target as HTMLSelectElement).value))
-              "
+              @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
             >
               <option :value="10">10</option>
               <option :value="20">20</option>
@@ -433,34 +443,26 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import { useQuasar } from 'quasar'
-import {
-  searchCustomers,
-  type CustomerSummary,
-} from 'src/features/customers/api'
+import { searchCustomers, type CustomerSummary } from 'src/features/customers/api'
 import type { InvoiceStatus } from '../api'
 import { useCustomerNames } from '../composables/useCustomerNames'
-import { isPartiallyPaid, statusPillClass } from '../status'
+import { isOverpaid, isPartiallyPaid, statusPillClass } from '../status'
 import { useInvoicesStore } from '../store'
 import { formatInvoiceDate, formatZar } from 'src/shared/money'
+
+// A negative balance is an overpayment credit: show it as "R 90,00 CR", never with a minus sign
+function formatBalance(balance: number): string {
+  return balance < 0 ? `${formatZar(Math.abs(balance))} CR` : formatZar(balance)
+}
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const invoicesStore = useInvoicesStore()
-const {
-  resolveCustomerIds,
-  setCustomerName,
-  isCustomerLoading,
-  getCustomerName,
-} = useCustomerNames()
+const { resolveCustomerIds, setCustomerName, isCustomerLoading, getCustomerName } =
+  useCustomerNames()
 
-const VALID_STATUSES: readonly InvoiceStatus[] = [
-  'Draft',
-  'Sent',
-  'Overdue',
-  'Paid',
-  'Cancelled',
-]
+const VALID_STATUSES: readonly InvoiceStatus[] = ['Draft', 'Sent', 'Overdue', 'Paid', 'Cancelled']
 
 const statusChips: ReadonlyArray<{ label: string; value: InvoiceStatus | '' }> = [
   { label: 'All', value: '' },
@@ -493,9 +495,7 @@ const isMobile = computed(() => Boolean($q.screen?.lt?.sm))
 
 const activeStatus = computed<InvoiceStatus | ''>(() => {
   const raw = typeof route.query.status === 'string' ? route.query.status.trim() : ''
-  return (VALID_STATUSES as readonly string[]).includes(raw)
-    ? (raw as InvoiceStatus)
-    : ''
+  return (VALID_STATUSES as readonly string[]).includes(raw) ? (raw as InvoiceStatus) : ''
 })
 
 const activeCustomerId = computed(() =>
@@ -531,19 +531,17 @@ const currentPageSize = computed(() => {
 const hasActiveFilters = computed(() =>
   Boolean(
     activeStatus.value ||
-      activeCustomerId.value ||
-      activeIssuedFrom.value ||
-      activeIssuedTo.value ||
-      activeOverdueOnly.value ||
-      activeSearchTerm.value,
+    activeCustomerId.value ||
+    activeIssuedFrom.value ||
+    activeIssuedTo.value ||
+    activeOverdueOnly.value ||
+    activeSearchTerm.value,
   ),
 )
 
 const items = computed(() => invoicesStore.pageResult?.items ?? [])
 const totalCount = computed(() => invoicesStore.pageResult?.totalCount ?? 0)
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(totalCount.value / currentPageSize.value)),
-)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / currentPageSize.value)))
 
 const paginationRangeText = computed(() => {
   if (totalCount.value === 0) {
@@ -564,23 +562,18 @@ function buildRouteQuery(overrides: {
   page?: number
   pageSize?: number
 }): LocationQueryRaw {
-  const nextStatus =
-    overrides.status !== undefined ? overrides.status : activeStatus.value
+  const nextStatus = overrides.status !== undefined ? overrides.status : activeStatus.value
   const nextCustomerId =
     overrides.customerId !== undefined ? overrides.customerId : activeCustomerId.value
   const nextIssuedFrom =
     overrides.issuedFrom !== undefined ? overrides.issuedFrom : activeIssuedFrom.value
-  const nextIssuedTo =
-    overrides.issuedTo !== undefined ? overrides.issuedTo : activeIssuedTo.value
+  const nextIssuedTo = overrides.issuedTo !== undefined ? overrides.issuedTo : activeIssuedTo.value
   const nextOverdue =
-    overrides.overdueOnly !== undefined
-      ? overrides.overdueOnly
-      : activeOverdueOnly.value
+    overrides.overdueOnly !== undefined ? overrides.overdueOnly : activeOverdueOnly.value
   const nextSearch =
     overrides.search !== undefined ? overrides.search.trim() : activeSearchTerm.value
   const nextPage = overrides.page !== undefined ? overrides.page : currentPage.value
-  const nextPageSize =
-    overrides.pageSize !== undefined ? overrides.pageSize : currentPageSize.value
+  const nextPageSize = overrides.pageSize !== undefined ? overrides.pageSize : currentPageSize.value
 
   const q: LocationQueryRaw = {}
   if (nextStatus) {
@@ -1128,6 +1121,13 @@ function openInvoiceDetail(invoiceId: string) {
     gap: 8px;
     font-size: 12.5px;
   }
+
+  &__balance {
+    margin-top: 4px;
+    font-size: 12.5px;
+    text-align: right;
+    color: var(--text-secondary);
+  }
 }
 
 .invoices-pagination {
@@ -1182,5 +1182,11 @@ function openInvoiceDetail(invoiceId: string) {
 
 .text-secondary {
   color: var(--text-secondary);
+}
+
+// Overpayment credit, shown as "R 90,00 CR"
+.invoice-balance--credit {
+  color: var(--pill-paid-text);
+  font-weight: 600;
 }
 </style>

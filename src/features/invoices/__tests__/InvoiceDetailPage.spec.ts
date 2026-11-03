@@ -153,9 +153,7 @@ describe('InvoiceDetailPage', () => {
     const wrapper = await mountDetailPage('inv-200')
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="invoice-detail-number"]').text()).toBe(
-      'INV-2026-0001',
-    )
+    expect(wrapper.find('[data-testid="invoice-detail-number"]').text()).toBe('INV-2026-0001')
     expect(wrapper.find('[data-testid="invoice-edit-btn"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="invoice-send-btn"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="invoice-delete-btn"]').exists()).toBe(false)
@@ -170,9 +168,7 @@ describe('InvoiceDetailPage', () => {
       issueDate: '2026-11-01',
       dueDate: '2026-11-15',
     })
-    const deleteSpy = vi
-      .spyOn(invoicesApi, 'deleteInvoice')
-      .mockResolvedValueOnce(undefined)
+    const deleteSpy = vi.spyOn(invoicesApi, 'deleteInvoice').mockResolvedValueOnce(undefined)
 
     const wrapper = await mountDetailPage('inv-200')
     await flushPromises()
@@ -205,16 +201,12 @@ describe('InvoiceDetailPage', () => {
 
   it('hides the Notifications card for drafts, renders notifications oldest-first for non-drafts, and refetches only when lastInvoiceId matches', async () => {
     // 1. Draft invoice -> Notifications card is hidden
-    const getInvoiceSpy = vi
-      .spyOn(invoicesApi, 'getInvoice')
-      .mockResolvedValueOnce(draftInvoice)
+    const getInvoiceSpy = vi.spyOn(invoicesApi, 'getInvoice').mockResolvedValueOnce(draftInvoice)
     const searchNotifSpy = vi.spyOn(notificationsApi, 'searchNotifications')
 
     const draftWrapper = await mountDetailPage('inv-200')
     await flushPromises()
-    expect(
-      draftWrapper.find('[data-testid="invoice-notifications-section"]').exists(),
-    ).toBe(false)
+    expect(draftWrapper.find('[data-testid="invoice-notifications-section"]').exists()).toBe(false)
     expect(searchNotifSpy).not.toHaveBeenCalled()
 
     // 2. Sent invoice -> Notifications card renders rows oldest-first
@@ -264,9 +256,7 @@ describe('InvoiceDetailPage', () => {
     const sentWrapper = await mountDetailPage('inv-200')
     await flushPromises()
 
-    expect(
-      sentWrapper.find('[data-testid="invoice-notifications-section"]').exists(),
-    ).toBe(true)
+    expect(sentWrapper.find('[data-testid="invoice-notifications-section"]').exists()).toBe(true)
     const rows = sentWrapper.findAll('[data-testid="notification-log-row"]')
     expect(rows).toHaveLength(2)
     // Oldest ('Invoice sent') is first, newest ('Overdue reminder') is second
@@ -287,5 +277,122 @@ describe('InvoiceDetailPage', () => {
     feedStore.changeVersion += 1
     await flushPromises()
     expect(searchNotifSpy).toHaveBeenCalledTimes(callsBeforeBump + 1)
+  })
+
+  describe('payments, credit and reminders', () => {
+    const sentInvoice: InvoiceDetails = {
+      ...draftInvoice,
+      invoiceNumber: 'INV-2026-0001',
+      status: 'Sent',
+      issueDate: '2026-11-01',
+      dueDate: '2026-11-15',
+    }
+
+    it('shows an overpayment as a credit with a note', async () => {
+      vi.spyOn(invoicesApi, 'getInvoice').mockResolvedValue({
+        ...sentInvoice,
+        status: 'Paid',
+        total: 517.5,
+        amountPaid: 600,
+        balance: -82.5,
+      })
+
+      const wrapper = await mountDetailPage('inv-200')
+      await flushPromises()
+
+      expect(wrapper.find('[data-testid="detail-balance-label"]').text()).toBe('Credit')
+      expect(wrapper.find('[data-testid="detail-balance"]').text()).not.toContain('-')
+      expect(wrapper.find('[data-testid="detail-overpaid-note"]').text()).toContain('Overpaid by')
+      expect(wrapper.find('[data-testid="invoice-detail-credit-pill"]').exists()).toBe(true)
+    })
+
+    it('shows "Paid in full" and no credit when the balance is exactly zero', async () => {
+      vi.spyOn(invoicesApi, 'getInvoice').mockResolvedValue({
+        ...sentInvoice,
+        status: 'Paid',
+        amountPaid: 517.5,
+        balance: 0,
+      })
+
+      const wrapper = await mountDetailPage('inv-200')
+      await flushPromises()
+
+      expect(wrapper.find('[data-testid="detail-balance-label"]').text()).toBe('Balance')
+      expect(wrapper.find('[data-testid="detail-balance"]').text()).toBe('Paid in full')
+      expect(wrapper.find('[data-testid="detail-overpaid-note"]').exists()).toBe(false)
+      expect(wrapper.find('[data-testid="invoice-detail-credit-pill"]').exists()).toBe(false)
+    })
+
+    it('counts the reminders sent on an overdue invoice', async () => {
+      vi.spyOn(invoicesApi, 'getInvoice').mockResolvedValue({
+        ...sentInvoice,
+        status: 'Overdue',
+        timeline: [
+          ...sentInvoice.timeline,
+          {
+            eventType: 'MarkedOverdue',
+            occurredAt: '2026-11-16T06:00:00Z',
+            userId: null,
+            detail: null,
+          },
+          {
+            eventType: 'ReminderRaised',
+            occurredAt: '2026-11-16T06:00:00Z',
+            userId: null,
+            detail: 'First reminder at 1 days overdue.',
+          },
+          {
+            eventType: 'ReminderRaised',
+            occurredAt: '2026-11-22T06:00:00Z',
+            userId: null,
+            detail: 'Second reminder at 7 days overdue.',
+          },
+        ],
+      })
+
+      const wrapper = await mountDetailPage('inv-200')
+      await flushPromises()
+
+      const summary = wrapper.find('[data-testid="invoice-detail-reminders-summary"]')
+      expect(summary.exists()).toBe(true)
+      expect(summary.text()).toContain('Reminders sent:')
+      expect(summary.text()).toContain('2')
+    })
+
+    it('reloads the invoice once, after the debounce, when a notification for it arrives', async () => {
+      const getInvoiceSpy = vi.spyOn(invoicesApi, 'getInvoice').mockResolvedValue(sentInvoice)
+
+      const wrapper = await mountDetailPage('inv-200')
+      await flushPromises()
+      expect(wrapper.find('[data-testid="invoice-detail-number"]').exists()).toBe(true)
+      const callsAfterLoad = getInvoiceSpy.mock.calls.length
+
+      vi.useFakeTimers()
+      try {
+        const feedStore = useNotificationFeedStore()
+
+        // Another invoice's notification: no reload
+        feedStore.lastInvoiceId = 'inv-other'
+        feedStore.changeVersion += 1
+        await flushPromises()
+        vi.advanceTimersByTime(500)
+        await flushPromises()
+        expect(getInvoiceSpy).toHaveBeenCalledTimes(callsAfterLoad)
+
+        // Two quick notifications for this invoice: one reload after the debounce
+        feedStore.lastInvoiceId = 'inv-200'
+        feedStore.changeVersion += 1
+        await flushPromises()
+        feedStore.changeVersion += 1
+        await flushPromises()
+        expect(getInvoiceSpy).toHaveBeenCalledTimes(callsAfterLoad)
+
+        vi.advanceTimersByTime(500)
+        await flushPromises()
+        expect(getInvoiceSpy).toHaveBeenCalledTimes(callsAfterLoad + 1)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
   })
 })

@@ -1,21 +1,13 @@
 <template>
   <q-page class="invoice-detail-page">
     <!-- Loading State -->
-    <div
-      v-if="loading"
-      class="attio-card detail-skeleton"
-      data-testid="invoice-detail-loading"
-    >
+    <div v-if="loading" class="attio-card detail-skeleton" data-testid="invoice-detail-loading">
       <q-skeleton type="text" width="240px" height="28px" />
       <q-skeleton type="rect" width="100%" height="220px" />
     </div>
 
     <!-- 404 Not Found State -->
-    <div
-      v-else-if="notFound"
-      class="attio-card detail-not-found"
-      data-testid="invoice-not-found"
-    >
+    <div v-else-if="notFound" class="attio-card detail-not-found" data-testid="invoice-not-found">
       <div class="detail-not-found__code tabular-nums">404</div>
       <h1 class="text-heading-lg">Invoice not found</h1>
       <p class="detail-not-found__copy">
@@ -48,10 +40,7 @@
               {{ invoice.invoiceNumber ?? 'Draft' }}
             </h1>
 
-            <span
-              :class="statusPillClass(invoice.status)"
-              data-testid="invoice-detail-status"
-            >
+            <span :class="statusPillClass(invoice.status)" data-testid="invoice-detail-status">
               {{ invoice.status }}
             </span>
 
@@ -62,16 +51,20 @@
             >
               Partially paid
             </span>
+
+            <span
+              v-if="isInvoiceOverpaid"
+              class="status-pill status-pill--paid"
+              data-testid="invoice-detail-credit-pill"
+            >
+              Credit
+            </span>
           </div>
 
           <div class="detail-header__meta">
             <span class="detail-header__meta-item">
               <span class="text-secondary">Customer:</span>
-              <q-skeleton
-                v-if="isCustomerLoading(invoice.customerId)"
-                type="text"
-                width="120px"
-              />
+              <q-skeleton v-if="isCustomerLoading(invoice.customerId)" type="text" width="120px" />
               <router-link
                 v-else
                 :to="`/customers/${encodeURIComponent(invoice.customerId)}`"
@@ -107,6 +100,17 @@
                 {{ relativeDueBadge.text }}
               </span>
             </span>
+
+            <template v-if="invoice.status === 'Overdue' || reminderEvents.length > 0">
+              <span class="detail-header__meta-sep">·</span>
+              <span
+                class="detail-header__meta-item tabular-nums"
+                data-testid="invoice-detail-reminders-summary"
+              >
+                <span class="text-secondary">Reminders sent:</span>
+                <span>{{ remindersSummaryText }}</span>
+              </span>
+            </template>
           </div>
         </div>
 
@@ -215,11 +219,19 @@
                 <tbody>
                   <tr v-for="payment in invoice.payments" :key="payment.paymentId">
                     <td class="tabular-nums">{{ formatInvoiceDate(payment.paidOn) }}</td>
-                    <td>{{ payment.method }}</td>
+                    <td>{{ paymentMethodLabel(payment.method) }}</td>
                     <td class="text-secondary">{{ payment.reference || '—' }}</td>
                     <td class="text-money">{{ formatZar(payment.amount) }}</td>
                   </tr>
                 </tbody>
+                <tfoot>
+                  <tr class="detail-payments-footer">
+                    <td colspan="3" class="font-medium">Total received</td>
+                    <td class="text-money font-medium" data-testid="invoice-payments-total">
+                      {{ formatZar(invoice.amountPaid) }}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </section>
@@ -293,11 +305,7 @@
               />
             </div>
 
-            <p
-              v-else
-              class="text-secondary"
-              data-testid="invoice-notifications-empty"
-            >
+            <p v-else class="text-secondary" data-testid="invoice-notifications-empty">
               No messages sent for this invoice yet.
             </p>
           </section>
@@ -342,12 +350,37 @@
               <div class="totals-dl__divider" />
 
               <div class="totals-dl__row totals-dl__row--balance">
-                <dt>Balance</dt>
-                <dd class="tabular-nums" data-testid="detail-balance">
-                  {{ formatZar(invoice.balance) }}
+                <dt data-testid="detail-balance-label">
+                  {{ invoice.balance < 0 ? 'Credit' : 'Balance' }}
+                </dt>
+                <dd
+                  class="tabular-nums"
+                  :class="{
+                    'totals-dl__credit': invoice.balance < 0,
+                  }"
+                  data-testid="detail-balance"
+                >
+                  <template v-if="invoice.balance < 0">
+                    {{ formatZar(Math.abs(invoice.balance)) }}
+                  </template>
+                  <template v-else-if="invoice.balance === 0 && invoice.status === 'Paid'">
+                    Paid in full
+                  </template>
+                  <template v-else>
+                    {{ formatZar(invoice.balance) }}
+                  </template>
                 </dd>
               </div>
             </dl>
+
+            <p
+              v-if="invoice.balance < 0"
+              class="totals-card__overpaid-note"
+              data-testid="detail-overpaid-note"
+            >
+              Overpaid by {{ formatZar(Math.abs(invoice.balance)) }}. This is owed back to the
+              customer.
+            </p>
           </section>
         </aside>
       </div>
@@ -358,8 +391,8 @@
           <div class="confirm-dialog-card__body">
             <h2 class="text-heading-md">Send this invoice?</h2>
             <p class="confirm-dialog-card__copy">
-              Send this invoice? It gets the next invoice number and can't be edited
-              afterwards. Due date: {{ projectedDueDateLabel }}.
+              Send this invoice? It gets the next invoice number and can't be edited afterwards. Due
+              date: {{ projectedDueDateLabel }}.
             </p>
           </div>
           <div class="confirm-dialog-card__actions">
@@ -387,9 +420,7 @@
         <q-card class="confirm-dialog-card" data-testid="delete-confirm-dialog">
           <div class="confirm-dialog-card__body">
             <h2 class="text-heading-md">Delete this draft?</h2>
-            <p class="confirm-dialog-card__copy">
-              Delete this draft? This can't be undone.
-            </p>
+            <p class="confirm-dialog-card__copy">Delete this draft? This can't be undone.</p>
           </div>
           <div class="confirm-dialog-card__actions">
             <q-btn
@@ -415,16 +446,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import {
-  invoicesApi,
-  type InvoiceDetails,
-  type InvoiceEventType,
-  type InvoiceStatus,
-} from '../api'
+import { invoicesApi, type InvoiceDetails, type InvoiceEventType, type PaymentMethod } from '../api'
 import { useCustomerNames } from '../composables/useCustomerNames'
+import { isOverpaid, isPartiallyPaid as checkIsPartiallyPaid, statusPillClass } from '../status'
 import { useInvoicesStore } from '../store'
 import {
   addDaysToIsoDate,
@@ -438,6 +465,8 @@ import { useNotificationFeedStore } from 'src/features/notifications/store'
 import type { NotificationLogItem } from 'src/features/notifications/types'
 import { ApiError, mapProblemDetails } from 'src/shared/api/problem'
 import { formatInvoiceDate, formatZar } from 'src/shared/money'
+
+const LIVE_REFRESH_DEBOUNCE_MS = 500
 
 const $q = useQuasar()
 const route = useRoute()
@@ -457,6 +486,19 @@ const invoiceNotifications = ref<NotificationLogItem[]>([])
 const notificationsLoading = ref(false)
 const expandedNotificationId = ref<string | null>(null)
 
+let liveRefreshTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearLiveRefreshTimer() {
+  if (liveRefreshTimer !== null) {
+    clearTimeout(liveRefreshTimer)
+    liveRefreshTimer = null
+  }
+}
+
+onBeforeUnmount(() => {
+  clearLiveRefreshTimer()
+})
+
 const backToListLocation = computed(() => ({
   path: '/invoices',
   query: invoicesStore.lastListRouteQuery,
@@ -464,7 +506,30 @@ const backToListLocation = computed(() => ({
 
 const isPartiallyPaid = computed(() => {
   if (!invoice.value) return false
-  return invoice.value.amountPaid > 0 && invoice.value.amountPaid < invoice.value.total
+  return checkIsPartiallyPaid(invoice.value)
+})
+
+const isInvoiceOverpaid = computed(() => {
+  if (!invoice.value) return false
+  return isOverpaid(invoice.value)
+})
+
+const reminderEvents = computed(() => {
+  if (!invoice.value) return []
+  return invoice.value.timeline.filter((event) => event.eventType === 'ReminderRaised')
+})
+
+const remindersSummaryText = computed(() => {
+  const events = reminderEvents.value
+  if (events.length === 0) {
+    return '0'
+  }
+  const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt))
+  const latest = sorted[sorted.length - 1]
+  if (!latest) {
+    return String(events.length)
+  }
+  return `${events.length} (latest ${formatInvoiceDate(latest.occurredAt)})`
 })
 
 const relativeDueBadge = computed(() => {
@@ -492,10 +557,7 @@ function toggleNotificationExpand(notificationId: string) {
     expandedNotificationId.value === notificationId ? null : notificationId
 }
 
-async function loadInvoiceNotifications(
-  invoiceId: string,
-  options?: { silent?: boolean },
-) {
+async function loadInvoiceNotifications(invoiceId: string, options?: { silent?: boolean }) {
   const isSilent = Boolean(options?.silent)
   if (!isSilent) {
     notificationsLoading.value = true
@@ -518,8 +580,7 @@ async function loadInvoiceNotifications(
 }
 
 async function loadInvoiceDetail(options?: { silent?: boolean }) {
-  const invoiceId =
-    typeof route.params.invoiceId === 'string' ? route.params.invoiceId.trim() : ''
+  const invoiceId = typeof route.params.invoiceId === 'string' ? route.params.invoiceId.trim() : ''
   if (!invoiceId) {
     notFound.value = true
     loading.value = false
@@ -561,6 +622,7 @@ async function loadInvoiceDetail(options?: { silent?: boolean }) {
 watch(
   () => route.params.invoiceId,
   () => {
+    clearLiveRefreshTimer()
     void loadInvoiceDetail()
   },
   { immediate: true },
@@ -571,14 +633,13 @@ watch(
   () => {
     const currentId =
       invoice.value?.invoiceId ??
-      (typeof route.params.invoiceId === 'string'
-        ? route.params.invoiceId.trim()
-        : '')
-    if (
-      currentId &&
-      notificationFeedStore.lastInvoiceId === currentId
-    ) {
-      void loadInvoiceDetail({ silent: true })
+      (typeof route.params.invoiceId === 'string' ? route.params.invoiceId.trim() : '')
+    if (currentId && notificationFeedStore.lastInvoiceId === currentId) {
+      clearLiveRefreshTimer()
+      liveRefreshTimer = setTimeout(() => {
+        liveRefreshTimer = null
+        void loadInvoiceDetail({ silent: true })
+      }, LIVE_REFRESH_DEBOUNCE_MS)
     }
   },
 )
@@ -634,23 +695,21 @@ async function confirmDeleteInvoice() {
   }
 }
 
-function statusPillClass(status: InvoiceStatus): string {
-  switch (status) {
-    case 'Draft':
-      return 'status-pill status-pill--draft'
-    case 'Sent':
-      return 'status-pill status-pill--sent'
-    case 'Overdue':
-      return 'status-pill status-pill--overdue'
-    case 'Paid':
-      return 'status-pill status-pill--paid'
-    case 'Cancelled':
-      return 'status-pill status-pill--cancelled'
-  }
-}
-
 function formatVatPercent(rate: number): string {
   return `${Math.round(rate * 100)}%`
+}
+
+function paymentMethodLabel(method: PaymentMethod): string {
+  switch (method) {
+    case 'Eft':
+      return 'EFT'
+    case 'Card':
+      return 'Card'
+    case 'Cash':
+      return 'Cash'
+    case 'Other':
+      return 'Other'
+  }
 }
 
 function timelineIcon(eventType: InvoiceEventType): string {
@@ -687,7 +746,7 @@ function timelineLabel(eventType: InvoiceEventType): string {
     case 'MarkedOverdue':
       return 'Marked overdue'
     case 'ReminderRaised':
-      return 'Reminder raised'
+      return 'Reminder sent'
     case 'Paid':
       return 'Paid'
     case 'Cancelled':
@@ -1043,5 +1102,17 @@ function formatTimelineTimestamp(isoTimestamp: string): string {
 
 .text-secondary {
   color: var(--text-secondary);
+}
+
+// Overpayment credit: a negative balance owed back to the customer
+.totals-dl__credit {
+  color: var(--pill-paid-text);
+  font-weight: 600;
+}
+
+.totals-card__overpaid-note {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--pill-paid-text);
 }
 </style>
