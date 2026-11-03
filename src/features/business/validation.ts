@@ -40,9 +40,7 @@ export interface BankDraft {
   branchName: string
 }
 
-export function validateBusinessIdentity(
-  draft: BusinessIdentityDraft,
-): Record<string, string> {
+export function validateBusinessIdentity(draft: BusinessIdentityDraft): Record<string, string> {
   const errors: Record<string, string> = {}
   const name = draft.name.trim()
   const reg = draft.registrationNumber.trim()
@@ -102,10 +100,10 @@ export function validateContactDraft(
 export function isAddressDraftStarted(draft: AddressDraft): boolean {
   return Boolean(
     draft.line1.trim() ||
-      draft.line2.trim() ||
-      draft.suburb.trim() ||
-      draft.city.trim() ||
-      draft.postalCode.trim(),
+    draft.line2.trim() ||
+    draft.suburb.trim() ||
+    draft.city.trim() ||
+    draft.postalCode.trim(),
   )
 }
 
@@ -159,17 +157,14 @@ export function validateAddressDraft(
 export function isBankDraftStarted(draft: BankDraft): boolean {
   return Boolean(
     draft.bankName.trim() ||
-      draft.accountHolder.trim() ||
-      draft.accountNumber.trim() ||
-      draft.branchCode.trim() ||
-      draft.branchName.trim(),
+    draft.accountHolder.trim() ||
+    draft.accountNumber.trim() ||
+    draft.branchCode.trim() ||
+    draft.branchName.trim(),
   )
 }
 
-export function validateBankDraft(
-  draft: BankDraft,
-  requireAll = false,
-): Record<string, string> {
+export function validateBankDraft(draft: BankDraft, requireAll = false): Record<string, string> {
   const errors: Record<string, string> = {}
   const started = isBankDraftStarted(draft)
   if (!requireAll && !started) {
@@ -240,11 +235,7 @@ export function validateSettingsDraft(
 }
 
 export function validateLogoFile(file: File): string | null {
-  if (
-    !ALLOWED_LOGO_MIME_TYPES.includes(
-      file.type as (typeof ALLOWED_LOGO_MIME_TYPES)[number],
-    )
-  ) {
+  if (!ALLOWED_LOGO_MIME_TYPES.includes(file.type as (typeof ALLOWED_LOGO_MIME_TYPES)[number])) {
     return 'Logo must be a PNG or JPEG image.'
   }
 

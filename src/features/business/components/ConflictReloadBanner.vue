@@ -1,10 +1,5 @@
 <template>
-  <div
-    v-if="visible"
-    role="alert"
-    class="conflict-banner"
-    data-testid="conflict-reload-banner"
-  >
+  <div v-if="visible" role="alert" class="conflict-banner" data-testid="conflict-reload-banner">
     <div class="conflict-banner__content">
       <q-icon name="sync_problem" size="18px" class="conflict-banner__icon" />
       <span>This business profile was changed elsewhere. Reload to see the latest.</span>

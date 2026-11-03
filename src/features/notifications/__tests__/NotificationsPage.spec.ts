@@ -49,9 +49,7 @@ const qMock = {
   notify: vi.fn(),
 }
 
-function makeLogItem(
-  overrides: Partial<NotificationLogItem> = {},
-): NotificationLogItem {
+function makeLogItem(overrides: Partial<NotificationLogItem> = {}): NotificationLogItem {
   return {
     notificationId: 'log-1',
     invoiceId: 'inv-42',
@@ -151,9 +149,9 @@ describe('Notifications API, NotificationLogRow & NotificationsPage', () => {
         stubs: quasarStubs,
       },
     })
-    expect(
-      failedWrapper.get('[data-testid="notification-status-pill"]').text(),
-    ).toBe('Failed after 3 attempts')
+    expect(failedWrapper.get('[data-testid="notification-status-pill"]').text()).toBe(
+      'Failed after 3 attempts',
+    )
 
     const pendingWrapper = mount(NotificationLogRow, {
       props: {
@@ -165,34 +163,28 @@ describe('Notifications API, NotificationLogRow & NotificationsPage', () => {
         stubs: quasarStubs,
       },
     })
-    expect(
-      pendingWrapper.get('[data-testid="notification-status-pill"]').text(),
-    ).toBe('Sending…')
+    expect(pendingWrapper.get('[data-testid="notification-status-pill"]').text()).toBe('Sending…')
   })
 
   it('renders rows on NotificationsPage, calls markAllRead on mount, expands body as literal text, and updates URL query on filter change resetting to page 1', async () => {
-    const searchSpy = vi
-      .spyOn(notificationsApi, 'searchNotifications')
-      .mockResolvedValue({
-        items: [
-          makeLogItem({
-            notificationId: 'log-1',
-            body: 'Hello <b>World</b> & Co.',
-          }),
-          makeLogItem({
-            notificationId: 'log-2',
-            invoiceNumber: 'INV-2026-0043',
-            notificationType: 'PaymentReceived',
-          }),
-        ],
-        page: 1,
-        pageSize: 20,
-        totalCount: 2,
-      })
+    const searchSpy = vi.spyOn(notificationsApi, 'searchNotifications').mockResolvedValue({
+      items: [
+        makeLogItem({
+          notificationId: 'log-1',
+          body: 'Hello <b>World</b> & Co.',
+        }),
+        makeLogItem({
+          notificationId: 'log-2',
+          invoiceNumber: 'INV-2026-0043',
+          notificationType: 'PaymentReceived',
+        }),
+      ],
+      page: 1,
+      pageSize: 20,
+      totalCount: 2,
+    })
 
-    const { wrapper, router, feedStore } = await mountNotificationsPage(
-      '/notifications?page=2',
-    )
+    const { wrapper, router, feedStore } = await mountNotificationsPage('/notifications?page=2')
     await flushPromises()
 
     // markAllRead called on mount
@@ -228,21 +220,17 @@ describe('Notifications API, NotificationLogRow & NotificationsPage', () => {
 
   it('renders empty state, filtered-empty state, and inline error banner while keeping existing rows visible', async () => {
     // 1. Empty state (no filters)
-    const searchSpy = vi
-      .spyOn(notificationsApi, 'searchNotifications')
-      .mockResolvedValueOnce({
-        items: [],
-        page: 1,
-        pageSize: 20,
-        totalCount: 0,
-      })
+    const searchSpy = vi.spyOn(notificationsApi, 'searchNotifications').mockResolvedValueOnce({
+      items: [],
+      page: 1,
+      pageSize: 20,
+      totalCount: 0,
+    })
 
     const { wrapper, router } = await mountNotificationsPage('/notifications')
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="notifications-empty-all"]').exists()).toBe(
-      true,
-    )
+    expect(wrapper.find('[data-testid="notifications-empty-all"]').exists()).toBe(true)
     expect(wrapper.get('[data-testid="notifications-empty-all"]').text()).toContain(
       'No messages yet. Sending an invoice emails your customer and the message appears here.',
     )
@@ -257,9 +245,7 @@ describe('Notifications API, NotificationLogRow & NotificationsPage', () => {
     await router.replace({ path: '/notifications', query: { status: 'Failed' } })
     await flushPromises()
 
-    expect(
-      wrapper.find('[data-testid="notifications-empty-filters"]').exists(),
-    ).toBe(true)
+    expect(wrapper.find('[data-testid="notifications-empty-filters"]').exists()).toBe(true)
 
     // 3. Loaded rows followed by a failed refetch -> inline error banner + old rows remain visible
     searchSpy.mockResolvedValueOnce({
@@ -268,34 +254,26 @@ describe('Notifications API, NotificationLogRow & NotificationsPage', () => {
       pageSize: 20,
       totalCount: 1,
     })
-    await wrapper
-      .get('[data-testid="notifications-empty-clear-filters"]')
-      .trigger('click')
+    await wrapper.get('[data-testid="notifications-empty-clear-filters"]').trigger('click')
     await flushPromises()
     expect(wrapper.findAll('[data-testid="notification-log-row"]')).toHaveLength(1)
 
     searchSpy.mockRejectedValueOnce(new Error('Network glitch'))
-    await wrapper
-      .get('[data-testid="notifications-status-select"]')
-      .setValue('Sent')
+    await wrapper.get('[data-testid="notifications-status-select"]').setValue('Sent')
     await flushPromises()
 
-    expect(
-      wrapper.find('[data-testid="notifications-error-banner"]').exists(),
-    ).toBe(true)
+    expect(wrapper.find('[data-testid="notifications-error-banner"]').exists()).toBe(true)
     expect(wrapper.findAll('[data-testid="notification-log-row"]')).toHaveLength(1)
   })
 
   it('refetches quietly without showing skeletons when feedStore.changeVersion bumps', async () => {
     vi.useFakeTimers()
-    const searchSpy = vi
-      .spyOn(notificationsApi, 'searchNotifications')
-      .mockResolvedValueOnce({
-        items: [makeLogItem({ notificationId: 'log-1' })],
-        page: 1,
-        pageSize: 20,
-        totalCount: 1,
-      })
+    const searchSpy = vi.spyOn(notificationsApi, 'searchNotifications').mockResolvedValueOnce({
+      items: [makeLogItem({ notificationId: 'log-1' })],
+      page: 1,
+      pageSize: 20,
+      totalCount: 1,
+    })
 
     const { wrapper, feedStore } = await mountNotificationsPage('/notifications')
     await flushPromises()
@@ -319,16 +297,11 @@ describe('Notifications API, NotificationLogRow & NotificationsPage', () => {
     await vi.advanceTimersByTimeAsync(500)
 
     // While background refetch is in flight, no skeleton is shown and old row stays visible
-    expect(
-      wrapper.find('[data-testid="notifications-loading-skeleton"]').exists(),
-    ).toBe(false)
+    expect(wrapper.find('[data-testid="notifications-loading-skeleton"]').exists()).toBe(false)
     expect(wrapper.findAll('[data-testid="notification-log-row"]')).toHaveLength(1)
 
     resolveRefetch({
-      items: [
-        makeLogItem({ notificationId: 'log-new' }),
-        makeLogItem({ notificationId: 'log-1' }),
-      ],
+      items: [makeLogItem({ notificationId: 'log-new' }), makeLogItem({ notificationId: 'log-1' })],
       page: 1,
       pageSize: 20,
       totalCount: 2,

@@ -202,9 +202,7 @@
                 <span class="field-helper">International format, e.g. +27821234567</span>
               </div>
             </div>
-            <p v-else class="customer-section__empty-hint">
-              No contact number added.
-            </p>
+            <p v-else class="customer-section__empty-hint">No contact number added.</p>
           </section>
 
           <div class="customer-section-divider" />
@@ -243,9 +241,7 @@
                 @postal-error="postalLookupError = $event"
               />
             </div>
-            <p v-else class="customer-section__empty-hint">
-              No billing address added.
-            </p>
+            <p v-else class="customer-section__empty-hint">No billing address added.</p>
           </section>
         </div>
 
@@ -276,16 +272,9 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useBusinessStore } from 'src/features/business/store'
-import {
-  customersApi,
-  type CustomerDetails,
-  type CustomerInput,
-} from 'src/features/customers/api'
+import { customersApi, type CustomerDetails, type CustomerInput } from 'src/features/customers/api'
 import { useCustomersStore } from 'src/features/customers/store'
-import {
-  validateCustomerDraft,
-  type CustomerFormDraft,
-} from 'src/features/customers/validation'
+import { validateCustomerDraft, type CustomerFormDraft } from 'src/features/customers/validation'
 import { ApiError, mapProblemDetails } from 'src/shared/api/problem'
 import AddressFields from 'src/shared/components/AddressFields.vue'
 
@@ -391,9 +380,7 @@ const isDirty = computed(() => serializeDraft() !== initialSnapshot.value)
 const clientValidationErrors = computed(() => validateCustomerDraft(draft))
 
 const isFormValid = computed(
-  () =>
-    !postalLookupError.value &&
-    Object.keys(clientValidationErrors.value).length === 0,
+  () => !postalLookupError.value && Object.keys(clientValidationErrors.value).length === 0,
 )
 
 const mergedErrors = computed<Record<string, string>>(() => {

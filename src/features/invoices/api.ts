@@ -150,10 +150,7 @@ export async function updateInvoice(
   invoiceId: string,
   request: UpdateInvoiceRequest,
 ): Promise<InvoiceDetails> {
-  return apiClient.put<InvoiceDetails>(
-    `/invoices/${encodeURIComponent(invoiceId)}`,
-    request,
-  )
+  return apiClient.put<InvoiceDetails>(`/invoices/${encodeURIComponent(invoiceId)}`, request)
 }
 
 export async function deleteInvoice(invoiceId: string): Promise<void> {

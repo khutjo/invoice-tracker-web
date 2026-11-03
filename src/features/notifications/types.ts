@@ -45,6 +45,9 @@ export function describeNotification(message: NotificationSentMessage): string {
   if (message.notificationType === 'InvoiceSent') {
     return `Invoice ${invoiceRef} sent to ${message.customerName}${suffix}`
   }
+  if (message.notificationType === 'PaymentReceived') {
+    return `Payment received for ${invoiceRef} from ${message.customerName}${suffix}`
+  }
 
   const label = notificationTypeLabel(message.notificationType)
   return `${label} sent to ${message.customerName} for ${invoiceRef}${suffix}`

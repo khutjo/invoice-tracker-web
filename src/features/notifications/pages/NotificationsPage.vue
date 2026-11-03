@@ -36,17 +36,11 @@
           aria-label="Filter by notification type"
           data-testid="notifications-type-select"
           @change="
-            onTypeChange(
-              ($event.target as HTMLSelectElement).value as NotificationType | '',
-            )
+            onTypeChange(($event.target as HTMLSelectElement).value as NotificationType | '')
           "
         >
           <option value="">All</option>
-          <option
-            v-for="opt in typeOptions"
-            :key="opt.value"
-            :value="opt.value"
-          >
+          <option v-for="opt in typeOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </option>
         </select>
@@ -60,19 +54,11 @@
           aria-label="Filter by delivery status"
           data-testid="notifications-status-select"
           @change="
-            onStatusChange(
-              ($event.target as HTMLSelectElement).value as
-                | NotificationStatus
-                | '',
-            )
+            onStatusChange(($event.target as HTMLSelectElement).value as NotificationStatus | '')
           "
         >
           <option value="">All</option>
-          <option
-            v-for="opt in statusOptions"
-            :key="opt.value"
-            :value="opt.value"
-          >
+          <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </option>
         </select>
@@ -133,9 +119,7 @@
       data-testid="notifications-empty-filters"
     >
       <q-icon name="filter_alt_off" size="24px" class="notifications-state-card__icon" />
-      <p class="notifications-state-card__copy">
-        No notifications match these filters.
-      </p>
+      <p class="notifications-state-card__copy">No notifications match these filters.</p>
       <button
         type="button"
         class="notifications-state-card__link"
@@ -152,14 +136,9 @@
       class="attio-card notifications-state-card"
       data-testid="notifications-empty-all"
     >
-      <q-icon
-        name="notifications_none"
-        size="24px"
-        class="notifications-state-card__icon"
-      />
+      <q-icon name="notifications_none" size="24px" class="notifications-state-card__icon" />
       <p class="notifications-state-card__copy">
-        No messages yet. Sending an invoice emails your customer and the message
-        appears here.
+        No messages yet. Sending an invoice emails your customer and the message appears here.
       </p>
     </div>
 
@@ -279,11 +258,7 @@ import { ApiError } from 'src/shared/api/problem'
 import { notificationsApi } from '../api'
 import NotificationLogRow from '../components/NotificationLogRow.vue'
 import { useNotificationFeedStore } from '../store'
-import type {
-  NotificationLogItem,
-  NotificationStatus,
-  NotificationType,
-} from '../types'
+import type { NotificationLogItem, NotificationStatus, NotificationType } from '../types'
 
 const PAGE_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 300
@@ -299,11 +274,7 @@ const VALID_TYPES: readonly NotificationType[] = [
   'InvoiceCancelled',
 ]
 
-const VALID_STATUSES: readonly NotificationStatus[] = [
-  'Sent',
-  'Pending',
-  'Failed',
-]
+const VALID_STATUSES: readonly NotificationStatus[] = ['Sent', 'Pending', 'Failed']
 
 const typeOptions: ReadonlyArray<{ label: string; value: NotificationType }> = [
   { label: 'Invoice sent', value: 'InvoiceSent' },
@@ -344,19 +315,13 @@ let activeAbortController: AbortController | null = null
 const isCompactScreen = computed(() => Boolean($q.screen?.lt?.md))
 
 const activeType = computed<NotificationType | ''>(() => {
-  const raw =
-    typeof route.query.type === 'string' ? route.query.type.trim() : ''
-  return (VALID_TYPES as readonly string[]).includes(raw)
-    ? (raw as NotificationType)
-    : ''
+  const raw = typeof route.query.type === 'string' ? route.query.type.trim() : ''
+  return (VALID_TYPES as readonly string[]).includes(raw) ? (raw as NotificationType) : ''
 })
 
 const activeStatus = computed<NotificationStatus | ''>(() => {
-  const raw =
-    typeof route.query.status === 'string' ? route.query.status.trim() : ''
-  return (VALID_STATUSES as readonly string[]).includes(raw)
-    ? (raw as NotificationStatus)
-    : ''
+  const raw = typeof route.query.status === 'string' ? route.query.status.trim() : ''
+  return (VALID_STATUSES as readonly string[]).includes(raw) ? (raw as NotificationStatus) : ''
 })
 
 const activeSearch = computed(() =>
@@ -372,9 +337,7 @@ const hasActiveFilters = computed(() =>
   Boolean(activeType.value || activeStatus.value || activeSearch.value),
 )
 
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)),
-)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
 
 const paginationRangeText = computed(() => {
   if (totalCount.value === 0) {
@@ -391,14 +354,10 @@ function buildRouteQuery(overrides: {
   search?: string
   page?: number
 }): LocationQueryRaw {
-  const nextType =
-    overrides.type !== undefined ? overrides.type : activeType.value
-  const nextStatus =
-    overrides.status !== undefined ? overrides.status : activeStatus.value
-  const nextSearch =
-    overrides.search !== undefined ? overrides.search.trim() : activeSearch.value
-  const nextPage =
-    overrides.page !== undefined ? overrides.page : currentPage.value
+  const nextType = overrides.type !== undefined ? overrides.type : activeType.value
+  const nextStatus = overrides.status !== undefined ? overrides.status : activeStatus.value
+  const nextSearch = overrides.search !== undefined ? overrides.search.trim() : activeSearch.value
+  const nextPage = overrides.page !== undefined ? overrides.page : currentPage.value
 
   const q: LocationQueryRaw = {}
   if (nextType) {
@@ -492,9 +451,7 @@ async function fetchPage(options?: { background?: boolean }) {
   } catch (err) {
     if (isAbortedError(err, signal)) return
     errorMessage.value =
-      err instanceof ApiError && err.message
-        ? err.message
-        : "Couldn't load notifications."
+      err instanceof ApiError && err.message ? err.message : "Couldn't load notifications."
   } finally {
     if (!signal.aborted) {
       loading.value = false
@@ -544,8 +501,7 @@ onBeforeUnmount(() => {
 })
 
 function toggleRowExpand(notificationId: string) {
-  expandedId.value =
-    expandedId.value === notificationId ? null : notificationId
+  expandedId.value = expandedId.value === notificationId ? null : notificationId
 }
 
 function onSearchInputChange(value: string) {

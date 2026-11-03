@@ -10,8 +10,7 @@
       <div class="dashboard-setup-banner__text">
         <q-icon name="info_outline" size="18px" />
         <span>
-          Finish setting up your business so invoices include your banking and contact
-          details.
+          Finish setting up your business so invoices include your banking and contact details.
         </span>
       </div>
       <q-btn
@@ -111,9 +110,7 @@
         <div
           class="kpi-tile__value tabular-nums"
           :class="{
-            'kpi-tile__value--overdue': Boolean(
-              summary && summary.overdue.balance > 0,
-            ),
+            'kpi-tile__value--overdue': Boolean(summary && summary.overdue.balance > 0),
           }"
           data-testid="kpi-overdue-value"
         >
@@ -211,9 +208,7 @@
             width="140px"
             data-testid="kpi-skeleton-meta"
           />
-          <template v-else-if="summary.drafts.draftCount > 0">
-            Ready to review and send
-          </template>
+          <template v-else-if="summary.drafts.draftCount > 0"> Ready to review and send </template>
           <template v-else>No drafts</template>
         </div>
       </router-link>
@@ -272,11 +267,7 @@
         </div>
 
         <!-- Mobile Stacked Cards (xs < 600px) -->
-        <div
-          v-else-if="isMobile"
-          class="dashboard-mobile-list"
-          data-testid="dashboard-mobile-list"
-        >
+        <div v-else-if="isMobile" class="dashboard-mobile-list" data-testid="dashboard-mobile-list">
           <template v-if="loadingRecentInvoices">
             <div
               v-for="n in 5"
@@ -362,11 +353,7 @@
             </thead>
             <tbody>
               <template v-if="loadingRecentInvoices">
-                <tr
-                  v-for="n in 5"
-                  :key="`skeleton-${n}`"
-                  data-testid="recent-invoice-skeleton-row"
-                >
+                <tr v-for="n in 5" :key="`skeleton-${n}`" data-testid="recent-invoice-skeleton-row">
                   <td><q-skeleton type="text" width="90px" /></td>
                   <td><q-skeleton type="text" width="140px" /></td>
                   <td><q-skeleton type="text" width="70px" /></td>
@@ -436,11 +423,7 @@ import { useQuasar } from 'quasar'
 import { useSessionStore } from 'src/features/auth/store'
 import { useBusinessStore } from 'src/features/business/store'
 import { useDashboard } from '../composables/useDashboard'
-import {
-  isInvoiceRowOverdue,
-  isPartiallyPaid,
-  statusPillClass,
-} from 'src/features/invoices/status'
+import { isInvoiceRowOverdue, isPartiallyPaid, statusPillClass } from 'src/features/invoices/status'
 import { formatDateZa, formatZar, pluralize } from 'src/shared/formatting/formatters'
 import { formatInvoiceDate } from 'src/shared/money'
 

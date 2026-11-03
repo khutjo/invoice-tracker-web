@@ -50,8 +50,7 @@ async function executeFetch(
   accessTokenOverride?: string | null,
 ): Promise<Response> {
   const headers = new Headers(options.headers)
-  const token =
-    accessTokenOverride !== undefined ? accessTokenOverride : authHooks.getAccessToken()
+  const token = accessTokenOverride !== undefined ? accessTokenOverride : authHooks.getAccessToken()
 
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)
@@ -81,23 +80,14 @@ async function executeFetch(
       ...(serializedBody !== undefined ? { body: serializedBody } : {}),
     })
   } catch (err) {
-    throw new ApiError(
-      err instanceof Error ? err.message : 'Network error',
-      0,
-      null,
-      true,
-    )
+    throw new ApiError(err instanceof Error ? err.message : 'Network error', 0, null, true)
   }
 }
 
 async function performRequest(path: string, options: RequestOptions = {}): Promise<Response> {
   let response = await executeFetch(path, options)
 
-  if (
-    response.status === 401 &&
-    !options.skipAuthRefresh &&
-    !isAuthEndpoint(path)
-  ) {
+  if (response.status === 401 && !options.skipAuthRefresh && !isAuthEndpoint(path)) {
     if (!inFlightRefresh) {
       inFlightRefresh = authHooks.refreshSession().finally(() => {
         inFlightRefresh = null
@@ -121,10 +111,7 @@ async function performRequest(path: string, options: RequestOptions = {}): Promi
   return response
 }
 
-export async function apiRequest<T = void>(
-  path: string,
-  options: RequestOptions = {},
-): Promise<T> {
+export async function apiRequest<T = void>(path: string, options: RequestOptions = {}): Promise<T> {
   const response = await performRequest(path, options)
   if (response.status === 204) {
     return undefined as T
@@ -137,10 +124,7 @@ export async function apiRequest<T = void>(
   return undefined as T
 }
 
-export async function apiBlobRequest(
-  path: string,
-  options: RequestOptions = {},
-): Promise<Blob> {
+export async function apiBlobRequest(path: string, options: RequestOptions = {}): Promise<Blob> {
   const response = await performRequest(path, options)
   return await response.blob()
 }

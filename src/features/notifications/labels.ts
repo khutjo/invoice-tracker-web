@@ -49,9 +49,7 @@ export function channelSuffix(channel: NotificationChannel): string {
   return channel === 'Sms' ? ' by SMS' : ' by email'
 }
 
-export function formatNotificationTimestamp(
-  iso: string | null | undefined,
-): string {
+export function formatNotificationTimestamp(iso: string | null | undefined): string {
   if (!iso) {
     return '—'
   }

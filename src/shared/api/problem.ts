@@ -61,17 +61,13 @@ export interface MapProblemOptions {
   routeEmailMentionsToField?: boolean
 }
 
-const NETWORK_ERROR_MESSAGE =
-  "We couldn't reach the server. Check your connection and try again."
+const NETWORK_ERROR_MESSAGE = "We couldn't reach the server. Check your connection and try again."
 
 /**
  * Maps an unknown thrown error (or RFC 9457 ProblemDetails / ValidationProblemDetails)
  * into a structured `{ status, title, fieldErrors, isNetworkError }` shape for forms.
  */
-export function mapProblemDetails(
-  error: unknown,
-  options: MapProblemOptions = {},
-): MappedProblem {
+export function mapProblemDetails(error: unknown, options: MapProblemOptions = {}): MappedProblem {
   const fieldErrors: Record<string, string[]> = {}
   const unknownFieldMessages: string[] = []
 
@@ -90,7 +86,11 @@ export function mapProblemDetails(
     status = error.status
     problem = error.problem
     isNetworkError = error.isNetworkError
-  } else if (error && typeof error === 'object' && ('errors' in error || 'title' in error || 'status' in error)) {
+  } else if (
+    error &&
+    typeof error === 'object' &&
+    ('errors' in error || 'title' in error || 'status' in error)
+  ) {
     problem = error as ProblemDetailsPayload
     status = problem.status
   } else if (error instanceof TypeError) {

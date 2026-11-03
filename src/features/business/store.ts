@@ -10,12 +10,7 @@ import {
   type Lookups,
 } from './api'
 
-export type BusinessStoreStatus =
-  | 'idle'
-  | 'loading'
-  | 'provisioning'
-  | 'ready'
-  | 'unavailable'
+export type BusinessStoreStatus = 'idle' | 'loading' | 'provisioning' | 'ready' | 'unavailable'
 
 export const SETUP_SHOWN_SESSION_KEY = 'invoice_tracker.setup_shown'
 
@@ -167,9 +162,7 @@ export const useBusinessStore = defineStore('business', () => {
 
       const [loadedSettings, loadedLookups] = await Promise.all([
         businessApi.getSettings().catch(() => null),
-        lookups.value
-          ? Promise.resolve(lookups.value)
-          : businessApi.getLookups().catch(() => null),
+        lookups.value ? Promise.resolve(lookups.value) : businessApi.getLookups().catch(() => null),
         fetchLogoIfPresent(loadedDetails.hasLogo),
       ])
 
@@ -243,8 +236,7 @@ export const useBusinessStore = defineStore('business', () => {
     defaultPaymentTermsDays: number
     timeZone: string
   }): Promise<BusinessSettings> {
-    const currentVersion =
-      version.value ?? settings.value?.version ?? profile.value?.version ?? ''
+    const currentVersion = version.value ?? settings.value?.version ?? profile.value?.version ?? ''
 
     try {
       const updated = await businessApi.saveSettings({

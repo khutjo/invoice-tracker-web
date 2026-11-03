@@ -127,8 +127,7 @@ export function toUpdateRequest(
         ? (patch.registrationNumber ?? null)
         : profile.registrationNumber,
     vatNumber: 'vatNumber' in patch ? (patch.vatNumber ?? null) : profile.vatNumber,
-    supportEmail:
-      'supportEmail' in patch ? (patch.supportEmail ?? null) : profile.supportEmail,
+    supportEmail: 'supportEmail' in patch ? (patch.supportEmail ?? null) : profile.supportEmail,
     contactNumber:
       'contactNumber' in patch
         ? (patch.contactNumber ?? null)

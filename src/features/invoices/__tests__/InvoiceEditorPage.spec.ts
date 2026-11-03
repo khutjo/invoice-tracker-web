@@ -185,9 +185,7 @@ describe('InvoiceEditorPage', () => {
     const { wrapper } = await mountEditorPage('/invoices/inv-100/edit')
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="preview-subtotal"]').text()).toBe(
-      formatZar(1400),
-    )
+    expect(wrapper.find('[data-testid="preview-subtotal"]').text()).toBe(formatZar(1400))
     expect(wrapper.find('[data-testid="preview-vat"]').text()).toBe(formatZar(210))
     expect(wrapper.find('[data-testid="preview-total"]').text()).toBe(formatZar(1610))
   })

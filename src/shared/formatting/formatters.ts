@@ -34,11 +34,7 @@ export function formatDateZa(isoDate: string | Date | null | undefined): string 
   return dateFormatter.format(date)
 }
 
-export function pluralize(
-  count: number,
-  singular: string,
-  plural?: string,
-): string {
+export function pluralize(count: number, singular: string, plural?: string): string {
   const label = count === 1 ? singular : (plural ?? `${singular}s`)
   return `${count} ${label}`
 }

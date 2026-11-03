@@ -15,10 +15,12 @@ export function statusPillClass(status: InvoiceStatus): string {
   }
 }
 
-export function isPartiallyPaid(
-  inv: Pick<InvoiceSummary, 'amountPaid' | 'total'>,
-): boolean {
+export function isPartiallyPaid(inv: Pick<InvoiceSummary, 'amountPaid' | 'total'>): boolean {
   return inv.amountPaid > 0 && inv.amountPaid < inv.total
+}
+
+export function isOverpaid(inv: Pick<InvoiceSummary, 'balance'>): boolean {
+  return inv.balance < 0
 }
 
 export function isInvoiceRowOverdue(

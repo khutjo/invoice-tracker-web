@@ -21,9 +21,7 @@ export interface DashboardSummary {
   }
 }
 
-export async function getDashboardSummary(
-  signal?: AbortSignal,
-): Promise<DashboardSummary> {
+export async function getDashboardSummary(signal?: AbortSignal): Promise<DashboardSummary> {
   return apiClient.get<DashboardSummary>(
     '/dashboard',
     signal !== undefined ? { signal } : undefined,
